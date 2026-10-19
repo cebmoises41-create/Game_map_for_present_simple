@@ -1,59 +1,403 @@
+<!DOCTYPE html>
+<html lang="en" translate="no" class="notranslate">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="google" content="notranslate">
+<title>Pirate Routines — Treasure Map</title>
+<style>
+  :root {
+    --ocean-dark: #0a2e4d;
+    --ocean-light: #165a85;
+    --sand: #f5d76e;
+    --sand-dark: #d4ac0d;
+    --grass: #27ae60;
+    --grass-dark: #1e8449;
+    --wood: #8b5a2b;
+    --wood-dark: #5c3a21;
+    --text-light: #fdfefe;
+    --success: #2ecc71;
+    --error: #e74c3c;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+    background: linear-gradient(to bottom, var(--ocean-dark) 0%, var(--ocean-light) 100%);
+    color: var(--text-light);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+  }
+
+  /* HUD */
+  .hud {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: rgba(0,0,0,0.6);
+    border-bottom: 3px solid var(--sand);
+    z-index: 10;
+  }
+  .pirate-title { font-size: 1.4rem; color: var(--sand); text-shadow: 2px 2px 0 #000; }
+  .hud-stats { display: flex; gap: 20px; font-size: 1.1rem; font-weight: bold; }
+  .timer { color: #fff; background: rgba(231, 76, 60, 0.8); padding: 5px 15px; border-radius: 20px; }
+
+  /* MAPA */
+  .map-container {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    height: 200px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 60px;
+    margin-top: 20px;
+  }
+  
+  .map-path {
+    position: absolute;
+    top: 55%;
+    left: 60px;
+    right: 60px;
+    height: 4px;
+    border-top: 4px dashed rgba(255,255,255,0.3);
+    z-index: 1;
+  }
+
+  /* ISLAS */
+  .island-wrapper {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.3s ease;
+  }
+
+  .island-base {
+    width: 70px;
+    height: 40px;
+    background: var(--sand);
+    border-radius: 50% 50% 10% 10%;
+    box-shadow: inset -8px -5px 0 var(--sand-dark), 0 8px 10px rgba(0,0,0,0.4);
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    border: 2px solid #fff;
+    transition: all 0.3s;
+  }
+
+  .palm-tree {
+    font-size: 2rem;
+    position: absolute;
+    bottom: 20px;
+    transform-origin: bottom center;
+    animation: sway 3s infinite alternate ease-in-out;
+  }
+  @keyframes sway { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
+
+  .island-number {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    background: #fff;
+    color: var(--ocean-dark);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 1rem;
+    border: 3px solid var(--sand);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    z-index: 3;
+  }
+
+  .island-wrapper.completed .island-base {
+    background: var(--grass);
+    box-shadow: inset -8px -5px 0 var(--grass-dark), 0 8px 10px rgba(0,0,0,0.4);
+  }
+
+  .island-wrapper.treasure .island-base {
+    width: 90px;
+    height: 55px;
+    background: #e67e22;
+  }
+  .island-wrapper.treasure .island-number {
+    background: #f1c40f;
+    color: #000;
+    border-color: #d35400;
+    font-size: 1.2rem;
+    width: 35px;
+    height: 35px;
+    right: -10px;
+  }
+
+  /* PIRATA */
+  .pirate {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: translate(-50%, -50%);
+    font-size: 2.5rem;
+    z-index: 5;
+    transition: left 1s cubic-bezier(0.25, 1, 0.5, 1);
+    filter: drop-shadow(0 8px 6px rgba(0,0,0,0.5));
+    animation: walk 0.6s infinite alternate ease-in-out;
+  }
+  @keyframes walk { from { transform: translate(-50%, -50%) translateY(0); } to { transform: translate(-50%, -50%) translateY(-8px); } }
+
+  /* TIBURÓN */
+  .shark {
+    position: absolute;
+    bottom: 5px; /* Nadando en el agua */
+    left: 0;
+    transform: scaleX(-1); /* Mirando a la derecha */
+    font-size: 2.5rem;
+    z-index: 4;
+    animation: swim 8s linear infinite;
+    filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5));
+  }
+  @keyframes swim {
+    0% { left: 10%; }
+    50% { left: 85%; transform: scaleX(-1) rotate(-5deg); }
+    51% { transform: scaleX(1) rotate(5deg); }
+    100% { left: 10%; transform: scaleX(1); }
+  }
+
+  /* TARJETA DE PREGUNTAS */
+  .game-card {
+    background: var(--wood);
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.1) 10px, rgba(0,0,0,0.1) 20px);
+    border: 6px solid var(--wood-dark);
+    border-radius: 20px;
+    padding: 30px;
+    width: 100%;
+    max-width: 800px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.6);
+    text-align: center;
+    margin-top: 10px;
+    position: relative;
+  }
+  
+  .game-card::before, .game-card::after {
+    content: ''; position: absolute; width: 12px; height: 12px; background: #555; border-radius: 50%; box-shadow: inset -2px -2px 5px rgba(0,0,0,0.8), inset 2px 2px 5px rgba(255,255,255,0.4);
+  }
+  .game-card::before { top: 10px; left: 10px; }
+  .game-card::after { top: 10px; right: 10px; }
+
+  .question-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.1rem;
+    color: var(--sand);
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px dashed rgba(255,255,255,0.3);
+    padding-bottom: 10px;
+  }
+
+  .question-text {
+    background: rgba(0,0,0,0.4);
+    padding: 20px;
+    border-radius: 10px;
+    font-size: 1.3rem;
+    font-style: italic;
+    margin-bottom: 25px;
+    border-left: 5px solid var(--sand);
+    color: #fff;
+  }
+
+  /* OPCIONES */
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+
+  .btn-option {
+    background: var(--ocean-dark);
+    color: #fff;
+    border: 2px solid var(--ocean-light);
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 1.05rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+  }
+  .btn-option:hover:not(:disabled) {
+    background: var(--ocean-light);
+    transform: scale(1.02);
+    border-color: var(--sand);
+  }
+  .btn-option:disabled { cursor: not-allowed; opacity: 0.7; }
+  .btn-option.correct { background: var(--success); border-color: #fff; }
+  .btn-option.wrong { background: var(--error); border-color: #fff; }
+
+  /* PANTALLAS */
+  .screen { display: none; width: 100%; align-items: center; flex-direction: column; }
+  .screen.active { display: flex; animation: fadeIn 0.5s; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  .intro-screen, .final-screen {
+    text-align: center;
+    padding: 40px;
+    background: rgba(0,0,0,0.7);
+    border-radius: 20px;
+    max-width: 600px;
+    border: 4px solid var(--sand);
+    margin-top: 50px;
+  }
+  .intro-screen h1, .final-screen h1 { font-size: 2.5rem; color: var(--sand); margin-bottom: 20px; text-shadow: 2px 2px 0 #000; }
+  .intro-screen p, .final-screen p { font-size: 1.1rem; margin-bottom: 20px; line-height: 1.6; }
+  
+  .big-btn {
+    background: var(--sand);
+    color: #000;
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    font-weight: 900;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 6px 0 var(--sand-dark);
+    transition: 0.2s;
+    text-transform: uppercase;
+  }
+  .big-btn:hover { transform: translateY(-3px); box-shadow: 0 9px 0 var(--sand-dark); }
+  .big-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--sand-dark); }
+
+  @media (max-width: 650px) {
+    .options-grid { grid-template-columns: 1fr; }
+    .map-container { padding: 0 20px; }
+    .island-base { width: 50px; height: 30px; }
+    .palm-tree { font-size: 1.5rem; bottom: 15px; }
+    .pirate { font-size: 2rem; }
+    .shark { font-size: 1.8rem; }
+  }
+</style>
+</head>
+<body translate="no" class="notranslate">
+
+  <!-- HUD -->
+  <div class="hud">
+    <div class="pirate-title">🏴‍☠️ Pirate Routines</div>
+    <div class="hud-stats">
+      <div>💎 Islands: <span id="scoreDisplay">0</span> / 5</div>
+      <div class="timer" id="timerDisplay">⏱️ 80s</div>
+    </div>
+  </div>
+
+  <!-- INTRO -->
+  <div id="introScreen" class="screen active intro-screen">
+    <h1>🗺️ The Treasure Map</h1>
+    <p>Ahoy, sailor! Translate the daily routines from Spanish to English to navigate through the 5 islands.</p>
+    <p><strong>Warning:</strong> You have 80 seconds per island. Beware of the shark! 🦈</p>
+    <button class="big-btn" onclick="startGame()">⚓ Set Sail!</button>
+  </div>
+
+  <!-- GAME -->
+  <div id="gameScreen" class="screen">
+    
+    <!-- MAP -->
+    <div class="map-container">
+      <div class="map-path"></div>
+      
+      <!-- SHARK -->
+      <div class="shark">🦈</div>
+      
+      <!-- PIRATE -->
+      <div class="pirate" id="pirate">🏴‍☠️</div>
+
+      <div id="islandsContainer" style="display: flex; justify-content: space-between; width: 100%;">
+        <div class="island-wrapper" id="island0"><div class="island-base"><span class="palm-tree">🌴</span><div class="island-number">1</div></div></div>
+        <div class="island-wrapper" id="island1"><div class="island-base"><span class="palm-tree">🌴</span><div class="island-number">2</div></div></div>
+        <div class="island-wrapper" id="island2"><div class="island-base"><span class="palm-tree">🌴</span><div class="island-number">3</div></div></div>
+        <div class="island-wrapper" id="island3"><div class="island-base"><span class="palm-tree">🌴</span><div class="island-number">4</div></div></div>
+        <div class="island-wrapper" id="island4"><div class="island-base"><span class="palm-tree">🌴</span><div class="island-number">5</div></div></div>
+        <div class="island-wrapper treasure" id="treasureIsland"><div class="island-base"><span class="palm-tree">💰</span><div class="island-number">🏆</div></div></div>
+      </div>
+    </div>
+
+    <!-- CARD -->
+    <div class="game-card" id="gameCard">
+      <div class="question-header">
+        <span>Island <span id="currentIslandNum">1</span></span>
+        <span>Question <span id="currentQuestionNum">1</span>/5</span>
+      </div>
+      <div class="question-text" id="questionText">Loading...</div>
+      <div id="dynamicArea"></div>
+    </div>
+
+  </div>
+
+  <!-- FINAL -->
+  <div id="finalScreen" class="screen final-screen">
+    <h1>🎉 Treasure Found!</h1>
+    <p>Incredible job, pirate! You reached the treasure island.</p>
+    <p style="font-size: 2rem;">🏆 <span id="finalScore">5</span> / 5 Islands Cleared</p>
+    <button class="big-btn" onclick="location.reload()">🔄 Play Again</button>
+  </div>
+
 <script>
 // =====================================================================
-//  DATABASE (Routines) - 40+ sentences mixed
+//  BANCO DE PREGUNTAS (40+ Ejercicios de Opción Múltiple)
 // =====================================================================
 const QUESTION_BANK = [
-  // Level 1: Basic Multiple Choice (Island 1)
-  { type: "choice", spanish: "Ella se levanta a las 6:00 am.", correct: "She wakes up at 6:00 am.", wrong: ["She wake up at 6:00 am.", "He wakes up at 6:00 am.", "She goes to bed at 6:00 am."] },
-  { type: "choice", spanish: "Él se cepilla los dientes.", correct: "He brushes his teeth.", wrong: ["He brush his teeth.", "She brushes her teeth.", "He washes his face."] },
-  { type: "choice", spanish: "Nosotros desayunamos a las 7:00 am.", correct: "We have breakfast at 7:00 am.", wrong: ["We has breakfast at 7:00 am.", "They have breakfast at 7:00 am.", "We have lunch at 7:00 am."] },
-  { type: "choice", spanish: "Ella va a la escuela.", correct: "She goes to school.", wrong: ["She go to school.", "He goes to school.", "She go to the school."] },
-  { type: "choice", spanish: "Ellos almuerzan a las 12:00 pm.", correct: "They have lunch at 12:00 pm.", wrong: ["They has lunch at 12:00 pm.", "He has lunch at 12:00 pm.", "They have dinner at 12:00 pm."] },
-  { type: "choice", spanish: "Yo me acuesto a las 10:00 pm.", correct: "I go to bed at 10:00 pm.", wrong: ["I goes to bed at 10:00 pm.", "I wake up at 10:00 pm.", "I am go to bed at 10:00 pm."] },
-  { type: "choice", spanish: "Él ve la televisión.", correct: "He watches TV.", wrong: ["He watch TV.", "She watches TV.", "He watchs TV."] },
-  { type: "choice", spanish: "Mi mamá cocina la cena.", correct: "My mom cooks dinner.", wrong: ["My mom cook dinner.", "My dad cooks dinner.", "My mom cook the dinner."] },
-  { type: "choice", spanish: "Ellos juegan futbol después de la escuela.", correct: "They play soccer after school.", wrong: ["They plays soccer after school.", "They play soccer after the school.", "They played soccer after school."] },
-  { type: "choice", spanish: "Ella se lava la cara.", correct: "She washes her face.", wrong: ["She wash her face.", "He washes his face.", "She washes his face."] },
-
-  // Level 2: Intermediate Multiple Choice (Island 2)
-  { type: "choice", spanish: "Nosotros leemos un libro.", correct: "We read a book.", wrong: ["We reads a book.", "We reading a book.", "They read a book."] },
-  { type: "choice", spanish: "Tú haces la tarea.", correct: "You do your homework.", wrong: ["You does your homework.", "You do you homework.", "You are do your homework."] },
-  { type: "choice", spanish: "El perro duerme en el sofá.", correct: "The dog sleeps on the sofa.", wrong: ["The dog sleep on the sofa.", "The dog sleeps in the sofa.", "The dog is sleep on the sofa."] },
-  { type: "choice", spanish: "Ella se viste rápidamente.", correct: "She gets dressed quickly.", wrong: ["She get dressed quickly.", "She gets dress quickly.", "He gets dressed quickly."] },
-  { type: "choice", spanish: "Él siempre llega tarde.", correct: "He always arrives late.", wrong: ["He always arrive late.", "He arrive always late.", "He is always arrive late."] },
-  { type: "choice", spanish: "Nosotros nunca desayunamos.", correct: "We never have breakfast.", wrong: ["We never has breakfast.", "We don't never have breakfast.", "We not have breakfast."] },
-  { type: "choice", spanish: "A ella le gusta escuchar música.", correct: "She likes listening to music.", wrong: ["She like listening to music.", "She likes listen to music.", "She like to listen music."] },
-  { type: "choice", spanish: "Él no va al gimnasio.", correct: "He does not go to the gym.", wrong: ["He do not go to the gym.", "He not go to the gym.", "He doesn't goes to the gym."] },
-  { type: "choice", spanish: "¿Tú cepillas tus dientes?", correct: "Do you brush your teeth?", wrong: ["Does you brush your teeth?", "Do you brushes your teeth?", "Are you brush your teeth?"] },
-
-  // Level 3: Harder Multiple Choice (Island 3)
-  { type: "choice", spanish: "Mi papá trabaja en una oficina.", correct: "My dad works in an office.", wrong: ["My dad work in an office.", "My dad works in a office.", "My dad is work in an office."] },
-  { type: "choice", spanish: "Ellos visitan a su abuela los domingos.", correct: "They visit their grandmother on Sundays.", wrong: ["They visits their grandmother on Sundays.", "They visit his grandmother on Sundays.", "They visit their grandmother in Sundays."] },
-  { type: "choice", spanish: "Ella hace ejercicio por la mañana.", correct: "She exercises in the morning.", wrong: ["She exercises on the morning.", "She exercise in the morning.", "He exercises in the morning."] },
-  
-  // Level 4: Writing (Island 4)
-  { type: "write", spanish: "Ella se despierta a las 7:00 am.", correct: "She wakes up at 7:00 am." },
-  { type: "write", spanish: "Él se baña todos los días.", correct: "He takes a shower every day." },
-  { type: "write", spanish: "Nosotros vamos al parque.", correct: "We go to the park." },
-  { type: "write", spanish: "Ellos estudian inglés.", correct: "They study English." },
-  { type: "write", spanish: "Yo como frutas.", correct: "I eat fruit." },
-  { type: "write", spanish: "Ella lee un libro.", correct: "She reads a book." },
-  { type: "write", spanish: "Él escribe una carta.", correct: "He writes a letter." },
-  { type: "write", spanish: "Nosotros escuchamos música.", correct: "We listen to music." },
-  { type: "write", spanish: "Tú lavas los platos.", correct: "You wash the dishes." },
-  { type: "write", spanish: "Mi mamá prepara el desayuno.", correct: "My mom makes breakfast." },
-
-  // Level 5: Advanced Writing (Island 5)
-  { type: "write", spanish: "Él nunca se levanta tarde.", correct: "He never gets up late." },
-  { type: "write", spanish: "Nosotros siempre vamos al cine los viernes.", correct: "We always go to the cinema on Fridays." },
-  { type: "write", spanish: "Ella a veces cocina pasta.", correct: "She sometimes cooks pasta." },
-  { type: "write", spanish: "Yo no bebo café por la noche.", correct: "I do not drink coffee at night." },
-  { type: "write", spanish: "Ellos no trabajan los domingos.", correct: "They do not work on Sundays." },
-  { type: "write", spanish: "¿Él juega tenis?", correct: "Does he play tennis?" },
-  { type: "write", spanish: "¿Tú lees el periódico?", correct: "Do you read the newspaper?" },
-  { type: "write", spanish: "Mi hermano hace su cama.", correct: "My brother makes his bed." },
-  { type: "write", spanish: "Ellos limpian su habitación.", correct: "They clean their room." },
-  { type: "write", spanish: "Ella visita a sus amigos.", correct: "She visits her friends." }
+  { spanish: "Ella se levanta a las 6:00 am.", correct: "She wakes up at 6:00 am.", wrong: ["She wake up at 6:00 am.", "He wakes up at 6:00 am.", "She goes to bed at 6:00 am."] },
+  { spanish: "Él se cepilla los dientes.", correct: "He brushes his teeth.", wrong: ["He brush his teeth.", "She brushes her teeth.", "He washes his face."] },
+  { spanish: "Nosotros desayunamos a las 7:00 am.", correct: "We have breakfast at 7:00 am.", wrong: ["We has breakfast at 7:00 am.", "They have breakfast at 7:00 am.", "We have lunch at 7:00 am."] },
+  { spanish: "Ella va a la escuela.", correct: "She goes to school.", wrong: ["She go to school.", "He goes to school.", "She go to the school."] },
+  { spanish: "Ellos almuerzan a las 12:00 pm.", correct: "They have lunch at 12:00 pm.", wrong: ["They has lunch at 12:00 pm.", "He has lunch at 12:00 pm.", "They have dinner at 12:00 pm."] },
+  { spanish: "Yo me acuesto a las 10:00 pm.", correct: "I go to bed at 10:00 pm.", wrong: ["I goes to bed at 10:00 pm.", "I wake up at 10:00 pm.", "I am go to bed at 10:00 pm."] },
+  { spanish: "Él ve la televisión.", correct: "He watches TV.", wrong: ["He watch TV.", "She watches TV.", "He watchs TV."] },
+  { spanish: "Mi mamá cocina la cena.", correct: "My mom cooks dinner.", wrong: ["My mom cook dinner.", "My dad cooks dinner.", "My mom cook the dinner."] },
+  { spanish: "Ellos juegan futbol después de la escuela.", correct: "They play soccer after school.", wrong: ["They plays soccer after school.", "They play soccer after the school.", "They played soccer after school."] },
+  { spanish: "Ella se lava la cara.", correct: "She washes her face.", wrong: ["She wash her face.", "He washes his face.", "She washes his face."] },
+  { spanish: "Nosotros leemos un libro.", correct: "We read a book.", wrong: ["We reads a book.", "We reading a book.", "They read a book."] },
+  { spanish: "Tú haces la tarea.", correct: "You do your homework.", wrong: ["You does your homework.", "You do you homework.", "You are do your homework."] },
+  { spanish: "El perro duerme en el sofá.", correct: "The dog sleeps on the sofa.", wrong: ["The dog sleep on the sofa.", "The dog sleeps in the sofa.", "The dog is sleep on the sofa."] },
+  { spanish: "Ella se viste rápidamente.", correct: "She gets dressed quickly.", wrong: ["She get dressed quickly.", "She gets dress quickly.", "He gets dressed quickly."] },
+  { spanish: "Él siempre llega tarde.", correct: "He always arrives late.", wrong: ["He always arrive late.", "He arrive always late.", "He is always arrive late."] },
+  { spanish: "Nosotros nunca desayunamos.", correct: "We never have breakfast.", wrong: ["We never has breakfast.", "We don't never have breakfast.", "We not have breakfast."] },
+  { spanish: "A ella le gusta escuchar música.", correct: "She likes listening to music.", wrong: ["She like listening to music.", "She likes listen to music.", "She like to listen music."] },
+  { spanish: "Él no va al gimnasio.", correct: "He does not go to the gym.", wrong: ["He do not go to the gym.", "He not go to the gym.", "He doesn't goes to the gym."] },
+  { spanish: "¿Tú cepillas tus dientes?", correct: "Do you brush your teeth?", wrong: ["Does you brush your teeth?", "Do you brushes your teeth?", "Are you brush your teeth?"] },
+  { spanish: "Mi papá trabaja en una oficina.", correct: "My dad works in an office.", wrong: ["My dad work in an office.", "My dad works in a office.", "My dad is work in an office."] },
+  { spanish: "Ellos visitan a su abuela los domingos.", correct: "They visit their grandmother on Sundays.", wrong: ["They visits their grandmother on Sundays.", "They visit his grandmother on Sundays.", "They visit their grandmother in Sundays."] },
+  { spanish: "Ella hace ejercicio por la mañana.", correct: "She exercises in the morning.", wrong: ["She exercises on the morning.", "She exercise in the morning.", "He exercises in the morning."] },
+  { spanish: "Yo como frutas.", correct: "I eat fruit.", wrong: ["I eats fruit.", "I am eat fruit.", "I eating fruit."] },
+  { spanish: "Ella lee un libro.", correct: "She reads a book.", wrong: ["She read a book.", "He reads a book.", "She reading a book."] },
+  { spanish: "Él escribe una carta.", correct: "He writes a letter.", wrong: ["He write a letter.", "She writes a letter.", "He is write a letter."] },
+  { spanish: "Nosotros escuchamos música.", correct: "We listen to music.", wrong: ["We listens to music.", "We listening to music.", "They listen to music."] },
+  { spanish: "Tú lavas los platos.", correct: "You wash the dishes.", wrong: ["You washes the dishes.", "You are wash the dishes.", "You wash the dish."] },
+  { spanish: "Mi mamá prepara el desayuno.", correct: "My mom makes breakfast.", wrong: ["My mom make breakfast.", "My dad makes breakfast.", "My mom makes the breakfast."] },
+  { spanish: "Él nunca se levanta tarde.", correct: "He never gets up late.", wrong: ["He never get up late.", "He doesn't never get up late.", "He not gets up late."] },
+  { spanish: "Nosotros siempre vamos al cine los viernes.", correct: "We always go to the cinema on Fridays.", wrong: ["We always goes to the cinema on Fridays.", "We go always to the cinema on Fridays.", "We always go to the cinema in Fridays."] },
+  { spanish: "Ella a veces cocina pasta.", correct: "She sometimes cooks pasta.", wrong: ["She sometimes cook pasta.", "She cook sometimes pasta.", "He sometimes cooks pasta."] },
+  { spanish: "Yo no bebo café por la noche.", correct: "I do not drink coffee at night.", wrong: ["I not drink coffee at night.", "I don't drinks coffee at night.", "I am not drink coffee at night."] },
+  { spanish: "Ellos no trabajan los domingos.", correct: "They do not work on Sundays.", wrong: ["They not work on Sundays.", "They don't works on Sundays.", "They doesn't work on Sundays."] },
+  { spanish: "¿Él juega tenis?", correct: "Does he play tennis?", wrong: ["Do he play tennis?", "Does he plays tennis?", "Is he play tennis?"] },
+  { spanish: "¿Tú lees el periódico?", correct: "Do you read the newspaper?", wrong: ["Does you read the newspaper?", "Do you reads the newspaper?", "Are you read the newspaper?"] },
+  { spanish: "Mi hermano hace su cama.", correct: "My brother makes his bed.", wrong: ["My brother make his bed.", "My brother makes he bed.", "My sister makes her bed."] },
+  { spanish: "Ellos limpian su habitación.", correct: "They clean their room.", wrong: ["They cleans their room.", "They clean his room.", "He cleans his room."] },
+  { spanish: "Ella visita a sus amigos.", correct: "She visits her friends.", wrong: ["She visit her friends.", "He visits his friends.", "She visits his friends."] },
+  { spanish: "Yo tengo dos hermanos.", correct: "I have two brothers.", wrong: ["I has two brothers.", "I am have two brothers.", "I haves two brothers."] },
+  { spanish: "Él tiene un coche nuevo.", correct: "He has a new car.", wrong: ["He have a new car.", "He haves a new car.", "She has a new car."] }
 ];
 
 // =====================================================================
@@ -108,21 +452,10 @@ function loadIsland(islandIdx) {
   currentIslandNumDisplay.textContent = islandIdx + 1;
   currentQuestionNumDisplay.textContent = "1/" + config.questions;
   
+  // Elegir preguntas aleatorias del banco para esta isla
   const allQuestions = shuffleArray(QUESTION_BANK);
-  const choiceQs = allQuestions.filter(q => q.type === 'choice');
-  const writeQs = allQuestions.filter(q => q.type === 'write');
+  currentIslandQuestions = allQuestions.slice(0, config.questions);
   
-  if (islandIdx === 0) {
-    currentIslandQuestions = choiceQs.slice(0, config.questions);
-  } else if (islandIdx === 1) {
-    currentIslandQuestions = choiceQs.slice(config.questions, config.questions + config.questions);
-  } else if (islandIdx === 2) {
-    currentIslandQuestions = [...choiceQs.slice(10, 13), ...writeQs.slice(0, 3)];
-  } else {
-    currentIslandQuestions = writeQs.slice(0, config.questions);
-  }
-  
-  currentIslandQuestions = shuffleArray(currentIslandQuestions);
   loadQuestion();
 }
 
@@ -140,64 +473,18 @@ function loadQuestion() {
   
   dynamicArea.innerHTML = '';
 
-  if (q.type === 'choice') {
-    const grid = document.createElement('div');
-    grid.className = 'options-grid';
-    const options = shuffleArray([q.correct, ...q.wrong]);
-    
-    options.forEach(opt => {
-      const btn = document.createElement('button');
-      btn.className = 'btn-option';
-      btn.textContent = opt;
-      btn.onclick = () => checkAnswer(btn, opt, q.correct);
-      grid.appendChild(btn);
-    });
-    dynamicArea.appendChild(grid);
-  } else {
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'write-input';
-    input.placeholder = 'Type the English translation...';
-    input.autocomplete = 'off';
-    
+  const grid = document.createElement('div');
+  grid.className = 'options-grid';
+  const options = shuffleArray([q.correct, ...q.wrong]);
+  
+  options.forEach(opt => {
     const btn = document.createElement('button');
-    btn.className = 'btn-submit';
-    btn.textContent = 'Check';
-    
-    const feedback = document.createElement('div');
-    feedback.style.marginTop = '10px';
-    feedback.style.fontWeight = 'bold';
-
-    function checkWrite() {
-      const val = input.value.trim().toLowerCase().replace(/[.,!?]/g, '');
-      const correct = q.correct.toLowerCase().replace(/[.,!?]/g, '');
-      if (!val) return;
-      
-      input.disabled = true;
-      btn.disabled = true;
-      clearInterval(timerInterval);
-
-      if (val === correct) {
-        input.style.borderColor = 'var(--success)';
-        feedback.style.color = 'var(--success)';
-        feedback.textContent = '✅ Correct!';
-        setTimeout(nextQuestion, 1500);
-      } else {
-        input.style.borderColor = 'var(--error)';
-        feedback.style.color = 'var(--error)';
-        feedback.textContent = `❌ Correct: ${q.correct}`;
-        timeLeft = Math.max(0, timeLeft - 5);
-        setTimeout(nextQuestion, 2500);
-      }
-    }
-
-    btn.onclick = checkWrite;
-    input.addEventListener('keydown', e => { if(e.key === 'Enter') checkWrite(); });
-    dynamicArea.appendChild(input);
-    dynamicArea.appendChild(btn);
-    dynamicArea.appendChild(feedback);
-    setTimeout(() => input.focus(), 100);
-  }
+    btn.className = 'btn-option';
+    btn.textContent = opt;
+    btn.onclick = () => checkAnswer(btn, opt, q.correct);
+    grid.appendChild(btn);
+  });
+  dynamicArea.appendChild(grid);
 }
 
 function checkAnswer(btn, selected, correct) {
@@ -211,7 +498,7 @@ function checkAnswer(btn, selected, correct) {
   } else {
     btn.classList.add('wrong');
     allBtns.forEach(b => { if (b.textContent === correct) b.classList.add('correct'); });
-    timeLeft = Math.max(0, timeLeft - 5);
+    timeLeft = Math.max(0, timeLeft - 5); // Penalización de 5 segundos
     setTimeout(nextQuestion, 2000);
   }
 }
