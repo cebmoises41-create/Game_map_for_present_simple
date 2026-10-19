@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- PROTECCIÓN CONTRA TRADUCCIÓN -->
 <meta name="google" content="notranslate">
+<meta name="robots" content="notranslate">
 <title>Pirate Routines — Treasure Map</title>
 <style>
   :root {
@@ -47,7 +49,7 @@
   }
   .pirate-title { font-size: 1.4rem; color: var(--sand); text-shadow: 2px 2px 0 #000; }
   .hud-stats { display: flex; gap: 20px; font-size: 1.1rem; font-weight: bold; }
-  .timer { color: #fff; background: rgba(41, 128, 185, 0.9); padding: 5px 15px; border-radius: 20px; }
+  .timer { color: #fff; background: rgba(231, 76, 60, 0.9); padding: 5px 15px; border-radius: 20px; transition: background 0.3s; }
 
   /* MAPA */
   .map-container {
@@ -298,7 +300,7 @@
     <div class="pirate-title">🏴‍☠️ Pirate Routines</div>
     <div class="hud-stats">
       <div>💎 Islands: <span id="scoreDisplay">0</span> / 5</div>
-      <div class="timer" id="timerDisplay">⏱️ 00:00</div>
+      <div class="timer" id="timerDisplay">⏱️ 05:00</div>
     </div>
   </div>
 
@@ -306,7 +308,7 @@
   <div id="introScreen" class="screen active intro-screen">
     <h1>🗺️ The Treasure Map</h1>
     <p>Ahoy, sailor! Translate the daily routines from Spanish to English to navigate through the 5 islands.</p>
-    <p><strong>Race against the clock!</strong> How fast can you reach the treasure?</p>
+    <p><strong>Warning:</strong> You have 5 minutes to reach the treasure. <br>Beware! If you choose the wrong answer, you will lose one island point.</p>
     <button class="big-btn" onclick="startGame()">⚓ Set Sail!</button>
   </div>
 
@@ -316,11 +318,7 @@
     <!-- MAP -->
     <div class="map-container">
       <div class="map-path"></div>
-      
-      <!-- TIBURÓN -->
       <div class="shark">🦈</div>
-      
-      <!-- BARCO -->
       <div class="ship" id="ship">⛵</div>
 
       <div id="islandsContainer" style="display: flex; justify-content: space-between; width: 100%;">
@@ -350,8 +348,7 @@
     <h1>🎉 Treasure Found!</h1>
     <p>Incredible job, pirate! You reached the treasure island.</p>
     <p style="font-size: 1.5rem;">🏆 Islands Cleared: <strong>5 / 5</strong></p>
-    <p style="font-size: 2rem; color: var(--sand);" id="finalTime">00:00</p>
-    <p id="bestTimeMsg" style="font-size: 1rem; color: #bdc3c7;"></p>
+    <p style="font-size: 1.2rem; color: var(--sand);" id="finalPointsMsg"></p>
     <button class="big-btn" style="margin-top: 20px;" onclick="location.reload()">🔄 Play Again</button>
   </div>
 
@@ -414,11 +411,10 @@ let currentIsland = 0;
 let currentQuestionIndex = 0;
 let currentIslandQuestions = [];
 let scoreIslands = 0;
+let failedAttempts = 0; // Contador de respuestas incorrectas
 
-// Variables del cronómetro
 let timerInterval = null;
-let seconds = 0;
-let totalSeconds = 0;
+let timeLeft = 300; // 5 minutos = 300 segundos
 
 const ship = document.getElementById('ship');
 const timerDisplay = document.getElementById('timerDisplay');
@@ -448,19 +444,32 @@ function startGame() {
   document.getElementById('gameScreen').classList.add('active');
   currentIsland = 0;
   scoreIslands = 0;
+  failedAttempts = 0;
   updateShipPosition();
-  startGlobalTimer();
+  startCountdown();
   loadIsland(0);
 }
 
-function startGlobalTimer() {
+function startCountdown() {
   clearInterval(timerInterval);
-  totalSeconds = 0;
-  timerDisplay.textContent = "⏱️ 00:00";
+  timeLeft = 300;
+  timerDisplay.textContent = `⏱️ ${formatTime(timeLeft)}`;
+  timerDisplay.style.background = 'rgba(41, 128, 185, 0.9)'; // Azul normal
   
   timerInterval = setInterval(() => {
-    totalSeconds++;
-    timerDisplay.textContent = `⏱️ ${formatTime(totalSeconds)}`;
+    timeLeft--;
+    timerDisplay.textContent = `⏱️ ${formatTime(timeLeft)}`;
+    
+    // Cambiar a rojo cuando queden menos de 60 segundos
+    if (timeLeft <= 60) {
+      timerDisplay.style.background = 'var(--error)';
+    }
+    
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      alert("⏰ Time's up! You didn't reach the treasure in time. Try again!");
+      location.reload();
+    }
   }, 1000);
 }
 
@@ -514,7 +523,16 @@ function checkAnswer(btn, selected, correct) {
   } else {
     btn.classList.add('wrong');
     allBtns.forEach(b => { if (b.textContent === correct) b.classList.add('correct'); });
-    setTimeout(nextQuestion, 1500);
+    
+    // Penalización por fallo
+    failedAttempts++;
+    if (scoreIslands > 0) {
+      scoreIslands--;
+      scoreDisplay.textContent = scoreIslands;
+    }
+    
+    // Avanzar después de mostrar la respuesta correcta (con un poco más de tiempo de espera para que se dé cuenta del error)
+    setTimeout(nextQuestion, 1500); 
   }
 }
 
@@ -555,18 +573,12 @@ function endGame() {
   document.getElementById('gameScreen').classList.remove('active');
   document.getElementById('finalScreen').classList.add('active');
   
-  const finalTimeStr = formatTime(totalSeconds);
-  document.getElementById('finalTime').textContent = `Your Time: ${finalTimeStr}`;
-  
-  // Guardar récord
-  let bestTime = localStorage.getItem('pirateBestTime');
-  if (!bestTime || totalSeconds < parseInt(bestTime)) {
-    localStorage.setItem('pirateBestTime', totalSeconds);
-    document.getElementById('bestTimeMsg').innerHTML = "🌟 <strong>New Record!</strong> You are the fastest pirate!";
-    document.getElementById('bestTimeMsg').style.color = "#f1c40f";
-  } else {
-    document.getElementById('bestTimeMsg').innerHTML = `🏆 Best Time: ${formatTime(parseInt(bestTime))}`;
+  // Si hubo penalizaciones, mostrar mensaje
+  let msg = `You completed the game with ${failedAttempts} mistakes.`;
+  if (failedAttempts === 0) {
+    msg = "🏆 PERFECT! You are a true pirate!";
   }
+  document.getElementById('finalPointsMsg').textContent = msg;
   
   ship.style.left = "92%";
   document.getElementById('treasureIsland').classList.add('completed');
