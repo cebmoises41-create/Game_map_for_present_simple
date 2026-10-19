@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" translate="no" class="notranslate">
+<html lang="en" translate="no" class="notranslate">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -46,7 +46,8 @@
     z-index: 10;
   }
   .pirate-title { font-size: 1.4rem; color: var(--sand); text-shadow: 2px 2px 0 #000; }
-  .treasures { font-size: 1.1rem; font-weight: bold; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; }
+  .hud-stats { display: flex; gap: 20px; font-size: 1.1rem; font-weight: bold; }
+  .timer { color: #fff; background: rgba(231, 76, 60, 0.8); padding: 5px 15px; border-radius: 20px; }
 
   /* MAPA */
   .map-container {
@@ -58,10 +59,9 @@
     justify-content: space-between;
     align-items: center;
     padding: 0 60px;
-    margin-top: 30px;
+    margin-top: 20px;
   }
   
-  /* Ruta punteada */
   .map-path {
     position: absolute;
     top: 55%;
@@ -72,7 +72,7 @@
     z-index: 1;
   }
 
-  /* ISLAS (Diseño CSS) */
+  /* ISLAS */
   .island-wrapper {
     position: relative;
     z-index: 2;
@@ -96,7 +96,6 @@
     transition: all 0.3s;
   }
 
-  /* Palmera */
   .palm-tree {
     font-size: 2rem;
     position: absolute;
@@ -106,7 +105,6 @@
   }
   @keyframes sway { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
 
-  /* Número de isla */
   .island-number {
     position: absolute;
     top: -15px;
@@ -126,13 +124,11 @@
     z-index: 3;
   }
 
-  /* Isla completada */
   .island-wrapper.completed .island-base {
     background: var(--grass);
     box-shadow: inset -8px -5px 0 var(--grass-dark), 0 8px 10px rgba(0,0,0,0.4);
   }
 
-  /* Isla del Tesoro */
   .island-wrapper.treasure .island-base {
     width: 90px;
     height: 55px;
@@ -148,21 +144,21 @@
     right: -10px;
   }
 
-  /* BARCO */
-  .ship {
+  /* PIRATA */
+  .pirate {
     position: absolute;
-    top: 45%;
+    top: 0;
     left: 0;
     transform: translate(-50%, -50%);
-    font-size: 3rem;
-    z-index: 4;
+    font-size: 2.5rem;
+    z-index: 5;
     transition: left 1s cubic-bezier(0.25, 1, 0.5, 1);
-    filter: drop-shadow(0 10px 5px rgba(0,0,0,0.5));
-    animation: float 2s infinite alternate ease-in-out;
+    filter: drop-shadow(0 8px 6px rgba(0,0,0,0.5));
+    animation: walk 0.6s infinite alternate ease-in-out;
   }
-  @keyframes float { from { transform: translate(-50%, -50%) translateY(0); } to { transform: translate(-50%, -50%) translateY(-10px); } }
+  @keyframes walk { from { transform: translate(-50%, -50%) translateY(0); } to { transform: translate(-50%, -50%) translateY(-8px); } }
 
-  /* TARJETA DE PREGUNTAS (Madera) */
+  /* TARJETA DE PREGUNTAS */
   .game-card {
     background: var(--wood);
     background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.1) 10px, rgba(0,0,0,0.1) 20px);
@@ -173,19 +169,20 @@
     max-width: 800px;
     box-shadow: 0 15px 30px rgba(0,0,0,0.6);
     text-align: center;
-    margin-top: 20px;
+    margin-top: 10px;
     position: relative;
   }
   
-  /* Clavos decorativos */
   .game-card::before, .game-card::after {
     content: ''; position: absolute; width: 12px; height: 12px; background: #555; border-radius: 50%; box-shadow: inset -2px -2px 5px rgba(0,0,0,0.8), inset 2px 2px 5px rgba(255,255,255,0.4);
   }
   .game-card::before { top: 10px; left: 10px; }
   .game-card::after { top: 10px; right: 10px; }
 
-  .question-title {
-    font-size: 1.2rem;
+  .question-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.1rem;
     color: var(--sand);
     margin-bottom: 15px;
     text-transform: uppercase;
@@ -205,7 +202,7 @@
     color: #fff;
   }
 
-  /* OPCIONES */
+  /* INPUT Y OPCIONES */
   .options-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -233,12 +230,37 @@
   .btn-option.correct { background: var(--success); border-color: #fff; }
   .btn-option.wrong { background: var(--error); border-color: #fff; }
 
+  .write-input {
+    width: 100%;
+    padding: 15px;
+    border-radius: 10px;
+    border: 2px solid var(--ocean-light);
+    background: var(--ocean-dark);
+    color: #fff;
+    font-size: 1.2rem;
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 15px;
+    outline: none;
+  }
+  .write-input:focus { border-color: var(--sand); }
+  .btn-submit {
+    background: var(--sand);
+    color: #000;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .btn-submit:hover { background: #f1c40f; }
+
   /* PANTALLAS */
   .screen { display: none; width: 100%; align-items: center; flex-direction: column; }
   .screen.active { display: flex; animation: fadeIn 0.5s; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* PANTALLA INICIO Y FINAL */
   .intro-screen, .final-screen {
     text-align: center;
     padding: 40px;
@@ -272,7 +294,7 @@
     .map-container { padding: 0 20px; }
     .island-base { width: 50px; height: 30px; }
     .palm-tree { font-size: 1.5rem; bottom: 15px; }
-    .ship { font-size: 2.2rem; }
+    .pirate { font-size: 2rem; }
   }
 </style>
 </head>
@@ -281,177 +303,381 @@
   <!-- HUD -->
   <div class="hud">
     <div class="pirate-title">🏴‍☠️ Pirate Routines</div>
-    <div class="treasures">💎 Islas: <span id="scoreDisplay">0</span> / 5</div>
+    <div class="hud-stats">
+      <div>💎 Islands: <span id="scoreDisplay">0</span> / 5</div>
+      <div class="timer" id="timerDisplay">⏱️ 80s</div>
+    </div>
   </div>
 
-  <!-- INICIO -->
+  <!-- INTRO -->
   <div id="introScreen" class="screen active intro-screen">
-    <h1>🗺️ El Mapa del Tesoro</h1>
-    <p>¡Ahoy, marinero! Navega por las 5 islas traduciendo las rutinas diarias del español al inglés.</p>
-    <p>Si fallas, el barco no avanzará. ¡Elige bien tus respuestas!</p>
-    <button class="big-btn" onclick="startGame()">⚓ ¡Zarpar!</button>
+    <h1>🗺️ The Treasure Map</h1>
+    <p>Ahoy, sailor! Translate the daily routines from Spanish to English to navigate through the 5 islands.</p>
+    <p><strong>Warning:</strong> You have 80 seconds per island. If you fail, you stay on the same island!</p>
+    <button class="big-btn" onclick="startGame()">⚓ Set Sail!</button>
   </div>
 
-  <!-- JUEGO -->
+  <!-- GAME -->
   <div id="gameScreen" class="screen">
     
-    <!-- MAPA -->
+    <!-- MAP -->
     <div class="map-container">
       <div class="map-path"></div>
-      <div class="ship" id="ship">⛵</div>
+      <div class="pirate" id="pirate">🏴‍☠️</div>
 
-      <!-- Las islas se generan con JS -->
       <div id="islandsContainer" style="display: flex; justify-content: space-between; width: 100%;">
-        <!-- Isla 1 -->
-        <div class="island-wrapper" id="island1">
-          <div class="island-base"><span class="palm-tree">🌴</span><div class="island-number">1</div></div>
-        </div>
-        <!-- Isla 2 -->
-        <div class="island-wrapper" id="island2">
-          <div class="island-base"><span class="palm-tree">🌴</span><div class="island-number">2</div></div>
-        </div>
-        <!-- Isla 3 -->
-        <div class="island-wrapper" id="island3">
-          <div class="island-base"><span class="palm-tree">🌴</span><div class="island-number">3</div></div>
-        </div>
-        <!-- Isla 4 -->
-        <div class="island-wrapper" id="island4">
-          <div class="island-base"><span class="palm-tree">🌴</span><div class="island-number">4</div></div>
-        </div>
-        <!-- Isla 5 -->
-        <div class="island-wrapper" id="island5">
-          <div class="island-base"><span class="palm-tree">🌴</span><div class="island-number">5</div></div>
-        </div>
-        <!-- Isla del Tesoro -->
-        <div class="island-wrapper treasure" id="treasureIsland">
-          <div class="island-base"><span class="palm-tree">💰</span><div class="island-number">🏆</div></div>
-        </div>
+        <div class="island-wrapper" id="island0"><div class="island-base"><span class="palm-tree">🌴</span><div class="island-number">1</div></div></div>
+        <div class="island-wrapper" id="island1"><div class="island-base"><span class="palm-tree">🌴</span><div class="island-number">2</div></div></div>
+        <div class="island-wrapper" id="island2"><div class="island-base"><span class="palm-tree">🌴</span><div class="island-number">3</div></div></div>
+        <div class="island-wrapper" id="island3"><div class="island-base"><span class="palm-tree">🌴</span><div class="island-number">4</div></div></div>
+        <div class="island-wrapper" id="island4"><div class="island-base"><span class="palm-tree">🌴</span><div class="island-number">5</div></div></div>
+        <div class="island-wrapper treasure" id="treasureIsland"><div class="island-base"><span class="palm-tree">💰</span><div class="island-number">🏆</div></div></div>
       </div>
     </div>
 
-    <!-- TARJETA -->
+    <!-- CARD -->
     <div class="game-card" id="gameCard">
-      <div class="question-title">Isla <span id="currentIslandNumber">1</span></div>
-      <div class="question-text" id="questionText">Cargando...</div>
-      <div class="options-grid" id="optionsContainer"></div>
+      <div class="question-header">
+        <span>Island <span id="currentIslandNum">1</span></span>
+        <span>Question <span id="currentQuestionNum">1</span>/5</span>
+      </div>
+      <div class="question-text" id="questionText">Loading...</div>
+      <div id="dynamicArea"></div>
     </div>
 
   </div>
 
   <!-- FINAL -->
   <div id="finalScreen" class="screen final-screen">
-    <h1>🎉 ¡Tesoro Encontrado!</h1>
-    <p>¡Increíble trabajo, pirata! Has llegado a la isla del tesoro.</p>
-    <p style="font-size: 2rem;">🏆 <span id="finalScore">5</span> / 5 Islas</p>
-    <button class="big-btn" onclick="location.reload()">🔄 Jugar de nuevo</button>
+    <h1>🎉 Treasure Found!</h1>
+    <p>Incredible job, pirate! You reached the treasure island.</p>
+    <p style="font-size: 2rem;">🏆 <span id="finalScore">5</span> / 5 Islands Cleared</p>
+    <button class="big-btn" onclick="location.reload()">🔄 Play Again</button>
   </div>
 
 <script>
-const QUESTIONS = [
-  { spanish: "Ella se levanta a las 6:00 am.", options: ["She wakes up at 6:00 am.", "She wake up at 6:00 am.", "He wakes up at 6:00 am.", "She goes to bed at 6:00 am."], correct: "She wakes up at 6:00 am." },
-  { spanish: "Él se cepilla los dientes.", options: ["He brushes his teeth.", "He brush his teeth.", "She brushes her teeth.", "He washes his face."], correct: "He brushes his teeth." },
-  { spanish: "Nosotros desayunamos a las 7:00 am.", options: ["We have breakfast at 7:00 am.", "We has breakfast at 7:00 am.", "They have breakfast at 7:00 am.", "We have lunch at 7:00 am."], correct: "We have breakfast at 7:00 am." },
-  { spanish: "Él va a la escuela en autobús.", options: ["He goes to school by bus.", "He go to school by bus.", "She goes to school by bus.", "He goes to work by bus."], correct: "He goes to school by bus." },
-  { spanish: "Ellos almuerzan en la escuela.", options: ["They have lunch at school.", "They has lunch at school.", "He has lunch at school.", "They have dinner at school."], correct: "They have lunch at school." }
+// =====================================================================
+//  DATABASE (Routines)
+// =====================================================================
+const QUESTION_BANK = [
+  // Level 1: Basic Multiple Choice (Island 1)
+  { type: "choice", spanish: "Ella se levanta a las 6:00 am.", correct: "She wakes up at 6:00 am.", wrong: ["She wake up at 6:00 am.", "He wakes up at 6:00 am.", "She goes to bed at 6:00 am."] },
+  { type: "choice", spanish: "Él se cepilla los dientes.", correct: "He brushes his teeth.", wrong: ["He brush his teeth.", "She brushes her teeth.", "He washes his face."] },
+  { type: "choice", spanish: "Nosotros desayunamos a las 7:00 am.", correct: "We have breakfast at 7:00 am.", wrong: ["We has breakfast at 7:00 am.", "They have breakfast at 7:00 am.", "We have lunch at 7:00 am."] },
+  { type: "choice", spanish: "Ella va a la escuela.", correct: "She goes to school.", wrong: ["She go to school.", "He goes to school.", "She go to the school."] },
+  { type: "choice", spanish: "Ellos almuerzan a las 12:00 pm.", correct: "They have lunch at 12:00 pm.", wrong: ["They has lunch at 12:00 pm.", "He has lunch at 12:00 pm.", "They have dinner at 12:00 pm."] },
+  { type: "choice", spanish: "Yo me acuesto a las 10:00 pm.", correct: "I go to bed at 10:00 pm.", wrong: ["I goes to bed at 10:00 pm.", "I wake up at 10:00 pm.", "I am go to bed at 10:00 pm."] },
+  { type: "choice", spanish: "Él ve la televisión.", correct: "He watches TV.", wrong: ["He watch TV.", "She watches TV.", "He watchs TV."] },
+
+  // Level 2: Intermediate Multiple Choice (Island 2)
+  { type: "choice", spanish: "Mi mamá cocina la cena.", correct: "My mom cooks dinner.", wrong: ["My mom cook dinner.", "My dad cooks dinner.", "My mom cook the dinner."] },
+  { type: "choice", spanish: "Ellos juegan futbol después de la escuela.", correct: "They play soccer after school.", wrong: ["They plays soccer after school.", "They play soccer after the school.", "They played soccer after school."] },
+  { type: "choice", spanish: "Ella se lava la cara.", correct: "She washes her face.", wrong: ["She wash her face.", "He washes his face.", "She washes his face."] },
+  { type: "choice", spanish: "Nosotros leemos un libro.", correct: "We read a book.", wrong: ["We reads a book.", "We reading a book.", "They read a book."] },
+  { type: "choice", spanish: "Tú haces la tarea.", correct: "You do your homework.", wrong: ["You does your homework.", "You do you homework.", "You are do your homework."] },
+  { type: "choice", spanish: "El perro duerme en el sofá.", correct: "The dog sleeps on the sofa.", wrong: ["The dog sleep on the sofa.", "The dog sleeps in the sofa.", "The dog is sleep on the sofa."] },
+  { type: "choice", spanish: "Ella se viste rápidamente.", correct: "She gets dressed quickly.", wrong: ["She get dressed quickly.", "She gets dress quickly.", "He gets dressed quickly."] },
+
+  // Level 3: Harder Multiple Choice (Island 3)
+  { type: "choice", spanish: "Él siempre llega tarde.", correct: "He always arrives late.", wrong: ["He always arrive late.", "He arrive always late.", "He is always arrive late."] },
+  { type: "choice", spanish: "Nosotros nunca desayunamos.", correct: "We never have breakfast.", wrong: ["We never has breakfast.", "We don't never have breakfast.", "We not have breakfast."] },
+  { type: "choice", spanish: "A ella le gusta escuchar música.", correct: "She likes listening to music.", wrong: ["She like listening to music.", "She likes listen to music.", "She like to listen music."] },
+  { type: "choice", spanish: "Él no va al gimnasio.", correct: "He does not go to the gym.", wrong: ["He do not go to the gym.", "He not go to the gym.", "He doesn't goes to the gym."] },
+  { type: "choice", spanish: "¿Tú cepillas tus dientes?", correct: "Do you brush your teeth?", wrong: ["Does you brush your teeth?", "Do you brushes your teeth?", "Are you brush your teeth?"] },
+  { type: "choice", spanish: "Mi papá trabaja en una oficina.", correct: "My dad works in an office.", wrong: ["My dad work in an office.", "My dad works in a office.", "My dad is work in an office."] },
+  { type: "choice", spanish: "Ellos visitan a su abuela los domingos.", correct: "They visit their grandmother on Sundays.", wrong: ["They visits their grandmother on Sundays.", "They visit his grandmother on Sundays.", "They visit their grandmother in Sundays."] },
+  { type: "choice", spanish: "Ella hace ejercicio por la mañana.", correct: "She exercises in the morning.", wrong: ["She exercises on the morning.", "She exercise in the morning.", "He exercises in the morning."] },
+
+  // Level 4: Writing (Island 4)
+  { type: "write", spanish: "Ella se despierta a las 7:00 am.", correct: "She wakes up at 7:00 am." },
+  { type: "write", spanish: "Él se baña todos los días.", correct: "He takes a shower every day." },
+  { type: "write", spanish: "Nosotros vamos al parque.", correct: "We go to the park." },
+  { type: "write", spanish: "Ellos estudian inglés.", correct: "They study English." },
+  { type: "write", spanish: "Yo como frutas.", correct: "I eat fruit." },
+  { type: "write", spanish: "Ella lee un libro.", correct: "She reads a book." },
+  { type: "write", spanish: "Él escribe una carta.", correct: "He writes a letter." },
+  { type: "write", spanish: "Nosotros escuchamos música.", correct: "We listen to music." },
+  { type: "write", spanish: "Tú lavas los platos.", correct: "You wash the dishes." },
+  { type: "write", spanish: "Mi mamá prepara el desayuno.", correct: "My mom makes breakfast." },
+
+  // Level 5: Advanced Writing (Island 5)
+  { type: "write", spanish: "Él nunca se levanta tarde.", correct: "He never gets up late." },
+  { type: "write", spanish: "Nosotros siempre vamos al cine los viernes.", correct: "We always go to the cinema on Fridays." },
+  { type: "write", spanish: "Ella a veces cocina pasta.", correct: "She sometimes cooks pasta." },
+  { type: "write", spanish: "Yo no bebo café por la noche.", correct: "I do not drink coffee at night." },
+  { type: "write", spanish: "Ellos no trabajan los domingos.", correct: "They do not work on Sundays." },
+  { type: "write", spanish: "¿Él juega tenis?", correct: "Does he play tennis?" },
+  { type: "write", spanish: "¿Tú lees el periódico?", correct: "Do you read the newspaper?" },
+  { type: "write", spanish: "Mi hermano hace su cama.", correct: "My brother makes his bed." },
+  { type: "write", spanish: "Ellos limpian su habitación.", correct: "They clean their room." },
+  { type: "write", spanish: "Ella visita a sus amigos.", correct: "She visits her friends." }
 ];
 
-let currentQuestionIndex = 0;
-let score = 0;
-let locked = false;
+// =====================================================================
+//  GAME CONFIGURATION
+// =====================================================================
+const ISLANDS_CONFIG = [
+  { id: 0, questions: 5, time: 80 },
+  { id: 1, questions: 5, time: 80 },
+  { id: 2, questions: 6, time: 80 },
+  { id: 3, questions: 8, time: 80 },
+  { id: 4, questions: 10, time: 80 }
+];
 
-const ship = document.getElementById('ship');
-const questionText = document.getElementById('questionText');
-const optionsContainer = document.getElementById('optionsContainer');
-const currentIslandNumber = document.getElementById('currentIslandNumber');
+// Variables globales
+let currentIsland = 0;
+let currentQuestionIndex = 0;
+let currentIslandQuestions = [];
+let timerInterval = null;
+let timeLeft = 80;
+let scoreIslands = 0;
+
+// Elementos del DOM
+const pirate = document.getElementById('pirate');
+const timerDisplay = document.getElementById('timerDisplay');
 const scoreDisplay = document.getElementById('scoreDisplay');
+const questionText = document.getElementById('questionText');
+const dynamicArea = document.getElementById('dynamicArea');
+const currentIslandNumDisplay = document.getElementById('currentIslandNum');
+const currentQuestionNumDisplay = document.getElementById('currentQuestionNum');
+
+// =====================================================================
+//  CORE LOGIC
+// =====================================================================
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 function startGame() {
   document.getElementById('introScreen').classList.remove('active');
   document.getElementById('gameScreen').classList.add('active');
+  
+  currentIsland = 0;
+  scoreIslands = 0;
+  updatePiratePosition();
+  
+  // Filtrar el banco de preguntas para la isla 1
+  const allQuestions = shuffleArray(QUESTION_BANK);
+  // Separar por tipo
+  const choiceQs = allQuestions.filter(q => q.type === 'choice');
+  const writeQs = allQuestions.filter(q => q.type === 'write');
+  
+  // Mezclar aleatoriamente y cortar según la configuración
+  // Para la isla 1, elegimos 5 preguntas del banco de opción múltiple
+  currentIslandQuestions = choiceQs.slice(0, ISLANDS_CONFIG[0].questions);
+  
+  loadIsland(0);
+}
+
+function loadIsland(islandIdx) {
+  currentIsland = islandIdx;
   currentQuestionIndex = 0;
-  score = 0;
-  updateShipPosition();
+  const config = ISLANDS_CONFIG[islandIdx];
+  
+  currentIslandNumDisplay.textContent = islandIdx + 1;
+  currentQuestionNumDisplay.textContent = "1/" + config.questions;
+  
+  // Preparar las preguntas específicas para esta isla
+  const allQuestions = shuffleArray(QUESTION_BANK);
+  const choiceQs = allQuestions.filter(q => q.type === 'choice');
+  const writeQs = allQuestions.filter(q => q.type === 'write');
+  
+  if (islandIdx < 2) {
+    // Islas 1 y 2: opción múltiple
+    currentIslandQuestions = choiceQs.slice(0, config.questions);
+  } else if (islandIdx === 2) {
+    // Isla 3: mezcla (3 opción múltiple, 3 escritura)
+    currentIslandQuestions = [...choiceQs.slice(0, 3), ...writeQs.slice(0, 3)];
+  } else {
+    // Islas 4 y 5: escritura (más difícil)
+    currentIslandQuestions = writeQs.slice(0, config.questions);
+  }
+  
+  currentIslandQuestions = shuffleArray(currentIslandQuestions);
+  
   loadQuestion();
 }
 
 function loadQuestion() {
-  if (currentQuestionIndex >= QUESTIONS.length) {
-    endGame();
+  if (currentQuestionIndex >= currentIslandQuestions.length) {
+    // Isla completada
+    completeIsland();
     return;
   }
-  locked = false;
-  const q = QUESTIONS[currentQuestionIndex];
-  currentIslandNumber.textContent = currentQuestionIndex + 1;
-  questionText.textContent = `"${q.spanish}"`;
-  optionsContainer.innerHTML = '';
 
-  const shuffledOpts = [...q.options].sort(() => Math.random() - 0.5);
-  shuffledOpts.forEach(opt => {
+  // Reset timer
+  resetTimer(ISLANDS_CONFIG[currentIsland].time);
+  
+  const q = currentIslandQuestions[currentQuestionIndex];
+  currentQuestionNumDisplay.textContent = (currentQuestionIndex + 1) + "/" + currentIslandQuestions.length;
+  questionText.textContent = `"${q.spanish}"`;
+  
+  dynamicArea.innerHTML = '';
+
+  if (q.type === 'choice') {
+    const grid = document.createElement('div');
+    grid.className = 'options-grid';
+    const options = shuffleArray([q.correct, ...q.wrong]);
+    
+    options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'btn-option';
+      btn.textContent = opt;
+      btn.onclick = () => checkAnswer(btn, opt, q.correct);
+      grid.appendChild(btn);
+    });
+    dynamicArea.appendChild(grid);
+  } else {
+    // Escribir
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'write-input';
+    input.placeholder = 'Type the English translation...';
+    input.autocomplete = 'off';
+    
     const btn = document.createElement('button');
-    btn.className = 'btn-option';
-    btn.textContent = opt;
-    btn.onclick = () => checkAnswer(btn, opt, q.correct);
-    optionsContainer.appendChild(btn);
-  });
+    btn.className = 'btn-submit';
+    btn.textContent = 'Check';
+    
+    const feedback = document.createElement('div');
+    feedback.style.marginTop = '10px';
+    feedback.style.fontWeight = 'bold';
+
+    function checkWrite() {
+      const val = input.value.trim().toLowerCase().replace(/[.,!?]/g, '');
+      const correct = q.correct.toLowerCase().replace(/[.,!?]/g, '');
+      
+      if (!val) return;
+      
+      // Deshabilitar
+      input.disabled = true;
+      btn.disabled = true;
+      clearInterval(timerInterval); // Pausar tiempo
+
+      if (val === correct) {
+        input.style.borderColor = 'var(--success)';
+        feedback.style.color = 'var(--success)';
+        feedback.textContent = '✅ Correct!';
+        setTimeout(nextQuestion, 1500);
+      } else {
+        input.style.borderColor = 'var(--error)';
+        feedback.style.color = 'var(--error)';
+        feedback.textContent = `❌ Correct: ${q.correct}`;
+        // Penalización por fallar (pierde 5 segundos)
+        timeLeft = Math.max(0, timeLeft - 5);
+        setTimeout(nextQuestion, 2500);
+      }
+    }
+
+    btn.onclick = checkWrite;
+    input.addEventListener('keydown', e => { if(e.key === 'Enter') checkWrite(); });
+
+    dynamicArea.appendChild(input);
+    dynamicArea.appendChild(btn);
+    dynamicArea.appendChild(feedback);
+    
+    setTimeout(() => input.focus(), 100);
+  }
 }
 
 function checkAnswer(btn, selected, correct) {
-  if (locked) return;
-  locked = true;
-
+  // Deshabilitar todos los botones
   const allBtns = document.querySelectorAll('.btn-option');
   allBtns.forEach(b => b.disabled = true);
+  clearInterval(timerInterval); // Pausar tiempo
 
   if (selected === correct) {
     btn.classList.add('correct');
-    score++;
-    scoreDisplay.textContent = score;
-    currentQuestionIndex++;
-    
-    // Mover barco a la siguiente isla
-    setTimeout(() => {
-      if (currentQuestionIndex < QUESTIONS.length) {
-        moveShip();
-        setTimeout(loadQuestion, 1000); 
-      } else {
-        endGame();
-      }
-    }, 800);
+    setTimeout(nextQuestion, 1000);
   } else {
     btn.classList.add('wrong');
     allBtns.forEach(b => { if (b.textContent === correct) b.classList.add('correct'); });
-    setTimeout(() => {
-      loadQuestion(); 
-    }, 2000);
+    // Penalización por fallar
+    timeLeft = Math.max(0, timeLeft - 5);
+    setTimeout(nextQuestion, 2000);
   }
 }
 
-function moveShip() {
-  const totalIslands = QUESTIONS.length;
-  const progress = currentQuestionIndex / totalIslands;
-  
-  // Calcula la posición basándose en las 5 islas + el tesoro
-  // Ajustamos los márgenes para que el barco se detenga justo en la isla.
-  const minLeft = 8; // Posición inicial (isla 1)
-  const maxLeft = 92; // Posición final (tesoro)
-  const leftPos = minLeft + (progress * (maxLeft - minLeft));
-  
-  ship.style.left = `${leftPos}%`;
-
-  // Marcar isla como completada
-  const island = document.getElementById(`island${currentQuestionIndex}`);
-  if (island) island.classList.add('completed');
+function nextQuestion() {
+  currentQuestionIndex++;
+  loadQuestion();
 }
 
-function updateShipPosition() {
-  ship.style.left = '8%';
+function resetTimer(seconds) {
+  clearInterval(timerInterval);
+  timeLeft = seconds;
+  updateTimerDisplay();
+  
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+    
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      // Tiempo agotado: el jugador se queda en la misma isla
+      alert("⏰ Time's up! You must try this island again.");
+      loadIsland(currentIsland); // Reiniciar isla actual
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  timerDisplay.textContent = `⏱️ ${timeLeft}s`;
+  if (timeLeft <= 15) {
+    timerDisplay.style.background = 'var(--error)';
+    timerDisplay.style.animation = 'pulse 0.5s infinite alternate';
+  } else {
+    timerDisplay.style.background = 'rgba(231, 76, 60, 0.8)';
+    timerDisplay.style.animation = 'none';
+  }
+}
+
+function completeIsland() {
+  clearInterval(timerInterval);
+  scoreIslands++;
+  scoreDisplay.textContent = scoreIslands;
+  
+  // Marcar isla como completada en el mapa
+  const islandEl = document.getElementById(`island${currentIsland}`);
+  if (islandEl) islandEl.classList.add('completed');
+  
+  // Mover al pirata
+  currentIsland++;
+  if (currentIsland < ISLANDS_CONFIG.length) {
+    updatePiratePosition();
+    setTimeout(() => {
+      loadIsland(currentIsland);
+    }, 1000);
+  } else {
+    endGame();
+  }
+}
+
+function updatePiratePosition() {
+  // Calcula la posición basándose en el número de islas
+  const totalIslands = ISLANDS_CONFIG.length;
+  const progress = currentIsland / totalIslands;
+  
+  const minLeft = 8;
+  const maxLeft = 92;
+  const leftPos = minLeft + (progress * (maxLeft - minLeft));
+  
+  pirate.style.left = `${leftPos}%`;
 }
 
 function endGame() {
+  clearInterval(timerInterval);
   document.getElementById('gameScreen').classList.remove('active');
   document.getElementById('finalScreen').classList.add('active');
-  document.getElementById('finalScore').textContent = score;
-  ship.style.left = "92%";
+  document.getElementById('finalScore').textContent = scoreIslands;
+  
+  // Mover pirata al tesoro final
+  pirate.style.left = "92%";
   document.getElementById('treasureIsland').classList.add('completed');
 }
 </script>
