@@ -144,26 +144,26 @@
     right: -10px;
   }
 
-  /* PIRATA */
-  .pirate {
+  /* BARCO PIRATA */
+  .ship {
     position: absolute;
-    top: 0;
+    top: 45%;
     left: 0;
     transform: translate(-50%, -50%);
-    font-size: 2.5rem;
+    font-size: 2.8rem;
     z-index: 5;
     transition: left 1s cubic-bezier(0.25, 1, 0.5, 1);
-    filter: drop-shadow(0 8px 6px rgba(0,0,0,0.5));
-    animation: walk 0.6s infinite alternate ease-in-out;
+    filter: drop-shadow(0 10px 5px rgba(0,0,0,0.5));
+    animation: float 2s infinite alternate ease-in-out;
   }
-  @keyframes walk { from { transform: translate(-50%, -50%) translateY(0); } to { transform: translate(-50%, -50%) translateY(-8px); } }
+  @keyframes float { from { transform: translate(-50%, -50%) translateY(0); } to { transform: translate(-50%, -50%) translateY(-8px); } }
 
   /* TIBURÓN */
   .shark {
     position: absolute;
-    bottom: 5px; /* Nadando en el agua */
+    bottom: 5px;
     left: 0;
-    transform: scaleX(-1); /* Mirando a la derecha */
+    transform: scaleX(-1);
     font-size: 2.5rem;
     z-index: 4;
     animation: swim 8s linear infinite;
@@ -286,7 +286,7 @@
     .map-container { padding: 0 20px; }
     .island-base { width: 50px; height: 30px; }
     .palm-tree { font-size: 1.5rem; bottom: 15px; }
-    .pirate { font-size: 2rem; }
+    .ship { font-size: 2rem; }
     .shark { font-size: 1.8rem; }
   }
 </style>
@@ -317,11 +317,11 @@
     <div class="map-container">
       <div class="map-path"></div>
       
-      <!-- SHARK -->
+      <!-- TIBURÓN -->
       <div class="shark">🦈</div>
       
-      <!-- PIRATE -->
-      <div class="pirate" id="pirate">🏴‍☠️</div>
+      <!-- BARCO -->
+      <div class="ship" id="ship">⛵</div>
 
       <div id="islandsContainer" style="display: flex; justify-content: space-between; width: 100%;">
         <div class="island-wrapper" id="island0"><div class="island-base"><span class="palm-tree">🌴</span><div class="island-number">1</div></div></div>
@@ -418,7 +418,7 @@ let timerInterval = null;
 let timeLeft = 80;
 let scoreIslands = 0;
 
-const pirate = document.getElementById('pirate');
+const ship = document.getElementById('ship');
 const timerDisplay = document.getElementById('timerDisplay');
 const scoreDisplay = document.getElementById('scoreDisplay');
 const questionText = document.getElementById('questionText');
@@ -440,7 +440,7 @@ function startGame() {
   document.getElementById('gameScreen').classList.add('active');
   currentIsland = 0;
   scoreIslands = 0;
-  updatePiratePosition();
+  updateShipPosition();
   loadIsland(0);
 }
 
@@ -545,7 +545,7 @@ function completeIsland() {
   
   currentIsland++;
   if (currentIsland < ISLANDS_CONFIG.length) {
-    updatePiratePosition();
+    updateShipPosition();
     setTimeout(() => {
       loadIsland(currentIsland);
     }, 1000);
@@ -554,13 +554,13 @@ function completeIsland() {
   }
 }
 
-function updatePiratePosition() {
+function updateShipPosition() {
   const totalIslands = ISLANDS_CONFIG.length;
   const progress = currentIsland / totalIslands;
   const minLeft = 8;
   const maxLeft = 92;
   const leftPos = minLeft + (progress * (maxLeft - minLeft));
-  pirate.style.left = `${leftPos}%`;
+  ship.style.left = `${leftPos}%`;
 }
 
 function endGame() {
@@ -568,7 +568,7 @@ function endGame() {
   document.getElementById('gameScreen').classList.remove('active');
   document.getElementById('finalScreen').classList.add('active');
   document.getElementById('finalScore').textContent = scoreIslands;
-  pirate.style.left = "92%";
+  ship.style.left = "92%";
   document.getElementById('treasureIsland').classList.add('completed');
 }
 </script>
