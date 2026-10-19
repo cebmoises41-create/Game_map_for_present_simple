@@ -171,7 +171,7 @@
   .shark-attack {
     position: absolute;
     font-size: 3rem;
-    left: -40px; /* Aparece a la izquierda del barco */
+    left: -40px;
     opacity: 0;
     transform: scaleX(-1);
     transition: all 0.3s ease;
@@ -329,7 +329,7 @@
   <div id="introScreen" class="screen active intro-screen">
     <h1>🗺️ The Treasure Map</h1>
     <p>Ahoy, sailor! Translate the daily routines to navigate through the 5 islands.</p>
-    <p><strong>Warning:</strong> You have 5 minutes. If you choose the wrong answer, the shark will bite your ship and you will lose a point! 🦈</p>
+    <p><strong>Warning:</strong> You have 5 minutes. If you choose the wrong answer, the shark will bite your ship, you will lose a point, and YOU CANNOT ADVANCE until you get it right!</p>
     <button class="big-btn" onclick="startGame()">⚓ Set Sail!</button>
   </div>
 
@@ -543,6 +543,7 @@ function checkAnswer(btn, selected, correct) {
 
   if (selected === correct) {
     btn.classList.add('correct');
+    // SOLO SI ES CORRECTO, AVANZA
     setTimeout(nextQuestion, 800);
   } else {
     btn.classList.add('wrong');
@@ -551,17 +552,18 @@ function checkAnswer(btn, selected, correct) {
     // ¡ATAQUE DEL TIBURÓN!
     shipContainer.classList.add('attacking');
     
-    // Penalización
+    // Penalización de punto
     failedAttempts++;
     if (scoreIslands > 0) {
       scoreIslands--;
       scoreDisplay.textContent = scoreIslands;
     }
     
-    // Quitar la clase de ataque después de 1.5 segundos y avanzar
+    // NO AVANZA. Se queda en la misma pregunta.
     setTimeout(() => {
       shipContainer.classList.remove('attacking');
-      nextQuestion();
+      // Volver a cargar la misma pregunta (opciones mezcladas)
+      loadQuestion();
     }, 1500); 
   }
 }
