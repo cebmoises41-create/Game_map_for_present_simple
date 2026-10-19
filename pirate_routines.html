@@ -47,7 +47,7 @@
   }
   .pirate-title { font-size: 1.4rem; color: var(--sand); text-shadow: 2px 2px 0 #000; }
   .hud-stats { display: flex; gap: 20px; font-size: 1.1rem; font-weight: bold; }
-  .timer { color: #fff; background: rgba(231, 76, 60, 0.8); padding: 5px 15px; border-radius: 20px; }
+  .timer { color: #fff; background: rgba(41, 128, 185, 0.9); padding: 5px 15px; border-radius: 20px; }
 
   /* MAPA */
   .map-container {
@@ -298,7 +298,7 @@
     <div class="pirate-title">🏴‍☠️ Pirate Routines</div>
     <div class="hud-stats">
       <div>💎 Islands: <span id="scoreDisplay">0</span> / 5</div>
-      <div class="timer" id="timerDisplay">⏱️ 80s</div>
+      <div class="timer" id="timerDisplay">⏱️ 00:00</div>
     </div>
   </div>
 
@@ -306,7 +306,7 @@
   <div id="introScreen" class="screen active intro-screen">
     <h1>🗺️ The Treasure Map</h1>
     <p>Ahoy, sailor! Translate the daily routines from Spanish to English to navigate through the 5 islands.</p>
-    <p><strong>Warning:</strong> You have 80 seconds per island. Beware of the shark! 🦈</p>
+    <p><strong>Race against the clock!</strong> How fast can you reach the treasure?</p>
     <button class="big-btn" onclick="startGame()">⚓ Set Sail!</button>
   </div>
 
@@ -349,13 +349,15 @@
   <div id="finalScreen" class="screen final-screen">
     <h1>🎉 Treasure Found!</h1>
     <p>Incredible job, pirate! You reached the treasure island.</p>
-    <p style="font-size: 2rem;">🏆 <span id="finalScore">5</span> / 5 Islands Cleared</p>
-    <button class="big-btn" onclick="location.reload()">🔄 Play Again</button>
+    <p style="font-size: 1.5rem;">🏆 Islands Cleared: <strong>5 / 5</strong></p>
+    <p style="font-size: 2rem; color: var(--sand);" id="finalTime">00:00</p>
+    <p id="bestTimeMsg" style="font-size: 1rem; color: #bdc3c7;"></p>
+    <button class="big-btn" style="margin-top: 20px;" onclick="location.reload()">🔄 Play Again</button>
   </div>
 
 <script>
 // =====================================================================
-//  BANCO DE PREGUNTAS (40+ Ejercicios de Opción Múltiple)
+//  BANCO DE PREGUNTAS (40+ Ejercicios)
 // =====================================================================
 const QUESTION_BANK = [
   { spanish: "Ella se levanta a las 6:00 am.", correct: "She wakes up at 6:00 am.", wrong: ["She wake up at 6:00 am.", "He wakes up at 6:00 am.", "She goes to bed at 6:00 am."] },
@@ -400,23 +402,23 @@ const QUESTION_BANK = [
   { spanish: "Él tiene un coche nuevo.", correct: "He has a new car.", wrong: ["He have a new car.", "He haves a new car.", "She has a new car."] }
 ];
 
-// =====================================================================
-//  GAME CONFIGURATION (Islands: 5, 5, 6, 8, 10 questions)
-// =====================================================================
 const ISLANDS_CONFIG = [
-  { id: 0, questions: 5, time: 80 },
-  { id: 1, questions: 5, time: 80 },
-  { id: 2, questions: 6, time: 80 },
-  { id: 3, questions: 8, time: 80 },
-  { id: 4, questions: 10, time: 80 }
+  { id: 0, questions: 5 },
+  { id: 1, questions: 5 },
+  { id: 2, questions: 6 },
+  { id: 3, questions: 8 },
+  { id: 4, questions: 10 }
 ];
 
 let currentIsland = 0;
 let currentQuestionIndex = 0;
 let currentIslandQuestions = [];
-let timerInterval = null;
-let timeLeft = 80;
 let scoreIslands = 0;
+
+// Variables del cronómetro
+let timerInterval = null;
+let seconds = 0;
+let totalSeconds = 0;
 
 const ship = document.getElementById('ship');
 const timerDisplay = document.getElementById('timerDisplay');
@@ -435,13 +437,31 @@ function shuffleArray(arr) {
   return a;
 }
 
+function formatTime(totalSecs) {
+  const m = Math.floor(totalSecs / 60).toString().padStart(2, '0');
+  const s = (totalSecs % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
 function startGame() {
   document.getElementById('introScreen').classList.remove('active');
   document.getElementById('gameScreen').classList.add('active');
   currentIsland = 0;
   scoreIslands = 0;
   updateShipPosition();
+  startGlobalTimer();
   loadIsland(0);
+}
+
+function startGlobalTimer() {
+  clearInterval(timerInterval);
+  totalSeconds = 0;
+  timerDisplay.textContent = "⏱️ 00:00";
+  
+  timerInterval = setInterval(() => {
+    totalSeconds++;
+    timerDisplay.textContent = `⏱️ ${formatTime(totalSeconds)}`;
+  }, 1000);
 }
 
 function loadIsland(islandIdx) {
@@ -452,7 +472,6 @@ function loadIsland(islandIdx) {
   currentIslandNumDisplay.textContent = islandIdx + 1;
   currentQuestionNumDisplay.textContent = "1/" + config.questions;
   
-  // Elegir preguntas aleatorias del banco para esta isla
   const allQuestions = shuffleArray(QUESTION_BANK);
   currentIslandQuestions = allQuestions.slice(0, config.questions);
   
@@ -465,8 +484,6 @@ function loadQuestion() {
     return;
   }
 
-  resetTimer(ISLANDS_CONFIG[currentIsland].time);
-  
   const q = currentIslandQuestions[currentQuestionIndex];
   currentQuestionNumDisplay.textContent = (currentQuestionIndex + 1) + "/" + currentIslandQuestions.length;
   questionText.textContent = `"${q.spanish}"`;
@@ -490,16 +507,14 @@ function loadQuestion() {
 function checkAnswer(btn, selected, correct) {
   const allBtns = document.querySelectorAll('.btn-option');
   allBtns.forEach(b => b.disabled = true);
-  clearInterval(timerInterval);
 
   if (selected === correct) {
     btn.classList.add('correct');
-    setTimeout(nextQuestion, 1000);
+    setTimeout(nextQuestion, 800);
   } else {
     btn.classList.add('wrong');
     allBtns.forEach(b => { if (b.textContent === correct) b.classList.add('correct'); });
-    timeLeft = Math.max(0, timeLeft - 5); // Penalización de 5 segundos
-    setTimeout(nextQuestion, 2000);
+    setTimeout(nextQuestion, 1500);
   }
 }
 
@@ -508,35 +523,7 @@ function nextQuestion() {
   loadQuestion();
 }
 
-function resetTimer(seconds) {
-  clearInterval(timerInterval);
-  timeLeft = seconds;
-  updateTimerDisplay();
-  
-  timerInterval = setInterval(() => {
-    timeLeft--;
-    updateTimerDisplay();
-    if (timeLeft <= 0) {
-      clearInterval(timerInterval);
-      alert("⏰ Time's up! You must try this island again.");
-      loadIsland(currentIsland);
-    }
-  }, 1000);
-}
-
-function updateTimerDisplay() {
-  timerDisplay.textContent = `⏱️ ${timeLeft}s`;
-  if (timeLeft <= 15) {
-    timerDisplay.style.background = 'var(--error)';
-    timerDisplay.style.animation = 'pulse 0.5s infinite alternate';
-  } else {
-    timerDisplay.style.background = 'rgba(231, 76, 60, 0.8)';
-    timerDisplay.style.animation = 'none';
-  }
-}
-
 function completeIsland() {
-  clearInterval(timerInterval);
   scoreIslands++;
   scoreDisplay.textContent = scoreIslands;
   
@@ -567,7 +554,20 @@ function endGame() {
   clearInterval(timerInterval);
   document.getElementById('gameScreen').classList.remove('active');
   document.getElementById('finalScreen').classList.add('active');
-  document.getElementById('finalScore').textContent = scoreIslands;
+  
+  const finalTimeStr = formatTime(totalSeconds);
+  document.getElementById('finalTime').textContent = `Your Time: ${finalTimeStr}`;
+  
+  // Guardar récord
+  let bestTime = localStorage.getItem('pirateBestTime');
+  if (!bestTime || totalSeconds < parseInt(bestTime)) {
+    localStorage.setItem('pirateBestTime', totalSeconds);
+    document.getElementById('bestTimeMsg').innerHTML = "🌟 <strong>New Record!</strong> You are the fastest pirate!";
+    document.getElementById('bestTimeMsg').style.color = "#f1c40f";
+  } else {
+    document.getElementById('bestTimeMsg').innerHTML = `🏆 Best Time: ${formatTime(parseInt(bestTime))}`;
+  }
+  
   ship.style.left = "92%";
   document.getElementById('treasureIsland').classList.add('completed');
 }
