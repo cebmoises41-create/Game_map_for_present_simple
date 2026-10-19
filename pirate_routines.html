@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- PROTECCIÓN CONTRA TRADUCCIÓN -->
 <meta name="google" content="notranslate">
 <meta name="robots" content="notranslate">
-<title>Pirate Routines — Treasure Map</title>
+<title>Pirate Routines — Beware the Shark!</title>
 <style>
   :root {
     --ocean-dark: #0a2e4d;
@@ -146,19 +145,59 @@
     right: -10px;
   }
 
-  /* BARCO PIRATA */
-  .ship {
+  /* BARCO Y TIBURÓN */
+  .ship-container {
     position: absolute;
     top: 45%;
     left: 0;
     transform: translate(-50%, -50%);
-    font-size: 2.8rem;
     z-index: 5;
     transition: left 1s cubic-bezier(0.25, 1, 0.5, 1);
-    filter: drop-shadow(0 10px 5px rgba(0,0,0,0.5));
+    display: flex;
+    align-items: center;
+    justify-content: center;
     animation: float 2s infinite alternate ease-in-out;
   }
+  
+  .ship {
+    font-size: 2.8rem;
+    filter: drop-shadow(0 10px 5px rgba(0,0,0,0.5));
+    transition: transform 0.2s;
+  }
+  
   @keyframes float { from { transform: translate(-50%, -50%) translateY(0); } to { transform: translate(-50%, -50%) translateY(-8px); } }
+
+  /* TIBURÓN ESPECIAL */
+  .shark-attack {
+    position: absolute;
+    font-size: 3rem;
+    left: -40px; /* Aparece a la izquierda del barco */
+    opacity: 0;
+    transform: scaleX(-1);
+    transition: all 0.3s ease;
+    pointer-events: none;
+  }
+
+  /* Animación del ataque */
+  .attacking .shark-attack {
+    opacity: 1;
+    animation: bite 0.5s ease-in-out infinite alternate;
+  }
+  .attacking .ship {
+    animation: shake 0.3s infinite;
+    filter: drop-shadow(0 0 10px red);
+  }
+  
+  @keyframes bite {
+    from { transform: scaleX(-1) translateX(0); }
+    to { transform: scaleX(-1) translateX(20px); }
+  }
+  @keyframes shake {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(-10deg); }
+    75% { transform: rotate(10deg); }
+    100% { transform: rotate(0deg); }
+  }
 
   /* TARJETA DE PREGUNTAS */
   .game-card {
@@ -271,6 +310,7 @@
     .island-base { width: 50px; height: 30px; }
     .palm-tree { font-size: 1.5rem; bottom: 15px; }
     .ship { font-size: 2rem; }
+    .shark-attack { font-size: 2rem; left: -30px; }
   }
 </style>
 </head>
@@ -288,8 +328,8 @@
   <!-- INTRO -->
   <div id="introScreen" class="screen active intro-screen">
     <h1>🗺️ The Treasure Map</h1>
-    <p>Ahoy, sailor! Translate the daily routines from Spanish to English to navigate through the 5 islands.</p>
-    <p><strong>Warning:</strong> You have 5 minutes to reach the treasure. <br>Beware! If you choose the wrong answer, you will lose one island point.</p>
+    <p>Ahoy, sailor! Translate the daily routines to navigate through the 5 islands.</p>
+    <p><strong>Warning:</strong> You have 5 minutes. If you choose the wrong answer, the shark will bite your ship and you will lose a point! 🦈</p>
     <button class="big-btn" onclick="startGame()">⚓ Set Sail!</button>
   </div>
 
@@ -300,8 +340,11 @@
     <div class="map-container">
       <div class="map-path"></div>
       
-      <!-- BARCO -->
-      <div class="ship" id="ship">⛵</div>
+      <!-- BARCO Y TIBURÓN -->
+      <div class="ship-container" id="shipContainer">
+        <div class="shark-attack">🦈</div>
+        <div class="ship" id="ship">⛵</div>
+      </div>
 
       <div id="islandsContainer" style="display: flex; justify-content: space-between; width: 100%;">
         <div class="island-wrapper" id="island0"><div class="island-base"><span class="palm-tree">🌴</span><div class="island-number">1</div></div></div>
@@ -393,12 +436,12 @@ let currentIsland = 0;
 let currentQuestionIndex = 0;
 let currentIslandQuestions = [];
 let scoreIslands = 0;
-let failedAttempts = 0; // Contador de respuestas incorrectas
+let failedAttempts = 0;
 
 let timerInterval = null;
-let timeLeft = 300; // 5 minutos = 300 segundos
+let timeLeft = 300;
 
-const ship = document.getElementById('ship');
+const shipContainer = document.getElementById('shipContainer');
 const timerDisplay = document.getElementById('timerDisplay');
 const scoreDisplay = document.getElementById('scoreDisplay');
 const questionText = document.getElementById('questionText');
@@ -436,13 +479,12 @@ function startCountdown() {
   clearInterval(timerInterval);
   timeLeft = 300;
   timerDisplay.textContent = `⏱️ ${formatTime(timeLeft)}`;
-  timerDisplay.style.background = 'rgba(41, 128, 185, 0.9)'; // Azul normal
+  timerDisplay.style.background = 'rgba(41, 128, 185, 0.9)';
   
   timerInterval = setInterval(() => {
     timeLeft--;
     timerDisplay.textContent = `⏱️ ${formatTime(timeLeft)}`;
     
-    // Cambiar a rojo cuando queden menos de 60 segundos
     if (timeLeft <= 60) {
       timerDisplay.style.background = 'var(--error)';
     }
@@ -506,15 +548,21 @@ function checkAnswer(btn, selected, correct) {
     btn.classList.add('wrong');
     allBtns.forEach(b => { if (b.textContent === correct) b.classList.add('correct'); });
     
-    // Penalización por fallo
+    // ¡ATAQUE DEL TIBURÓN!
+    shipContainer.classList.add('attacking');
+    
+    // Penalización
     failedAttempts++;
     if (scoreIslands > 0) {
       scoreIslands--;
       scoreDisplay.textContent = scoreIslands;
     }
     
-    // Avanzar después de mostrar la respuesta correcta
-    setTimeout(nextQuestion, 1500); 
+    // Quitar la clase de ataque después de 1.5 segundos y avanzar
+    setTimeout(() => {
+      shipContainer.classList.remove('attacking');
+      nextQuestion();
+    }, 1500); 
   }
 }
 
@@ -547,7 +595,7 @@ function updateShipPosition() {
   const minLeft = 8;
   const maxLeft = 92;
   const leftPos = minLeft + (progress * (maxLeft - minLeft));
-  ship.style.left = `${leftPos}%`;
+  shipContainer.style.left = `${leftPos}%`;
 }
 
 function endGame() {
@@ -557,11 +605,11 @@ function endGame() {
   
   let msg = `You completed the game with ${failedAttempts} mistakes.`;
   if (failedAttempts === 0) {
-    msg = "🏆 PERFECT! You are a true pirate!";
+    msg = "🏆 PERFECT! The shark didn't touch your ship!";
   }
   document.getElementById('finalPointsMsg').textContent = msg;
   
-  ship.style.left = "92%";
+  shipContainer.style.left = "92%";
   document.getElementById('treasureIsland').classList.add('completed');
 }
 </script>
