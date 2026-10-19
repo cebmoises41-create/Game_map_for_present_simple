@@ -6,12 +6,13 @@
 <meta name="google" content="notranslate">
 <title>Pirate Routines — Treasure Map</title>
 <style>
-  /* ====== VARIABLES Y ESTILOS BASE ====== */
   :root {
-    --ocean: #0b3d60;
-    --ocean-light: #1a5b82;
-    --sand: #f4d03f;
+    --ocean-dark: #0a2e4d;
+    --ocean-light: #165a85;
+    --sand: #f5d76e;
     --sand-dark: #d4ac0d;
+    --grass: #27ae60;
+    --grass-dark: #1e8449;
     --wood: #8b5a2b;
     --wood-dark: #5c3a21;
     --text-light: #fdfefe;
@@ -22,151 +23,189 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: 'Trebuchet MS', 'Segoe UI', sans-serif; /* Fuente tipo aventura */
-    background-color: var(--ocean);
-    background-image: 
-      radial-gradient(circle at 10% 20%, rgba(255,255,255,0.05) 0%, transparent 20%),
-      radial-gradient(circle at 90% 80%, rgba(255,255,255,0.05) 0%, transparent 20%);
+    font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+    background: linear-gradient(to bottom, var(--ocean-dark) 0%, var(--ocean-light) 100%);
     color: var(--text-light);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     overflow-x: hidden;
-    position: relative;
   }
 
-  /* Olas animadas de fondo */
-  .waves {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 100px;
-    background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg"><path fill="%230b3d60" fill-opacity="0.5" d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
-    background-size: cover;
-    background-repeat: no-repeat;
-    z-index: -1;
-    animation: waveAnim 10s linear infinite alternate;
-  }
-  @keyframes waveAnim {
-    from { transform: translateX(-20px); }
-    to { transform: translateX(20px); }
-  }
-
-  /* ====== HEADER (PIRATA Y PUNTOS) ====== */
+  /* HUD */
   .hud {
     width: 100%;
     max-width: 900px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
-    background: rgba(0,0,0,0.4);
-    border-radius: 0 0 20px 20px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-    margin-bottom: 20px;
+    padding: 15px 20px;
+    background: rgba(0,0,0,0.6);
+    border-bottom: 3px solid var(--sand);
     z-index: 10;
   }
-  .pirate-title { font-size: 1.5rem; color: var(--sand); text-shadow: 2px 2px 0 #000; }
-  .treasures { font-size: 1.2rem; font-weight: bold; }
+  .pirate-title { font-size: 1.4rem; color: var(--sand); text-shadow: 2px 2px 0 #000; }
+  .treasures { font-size: 1.1rem; font-weight: bold; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; }
 
-  /* ====== MAPA (ISLAS Y BARCO) ====== */
+  /* MAPA */
   .map-container {
     position: relative;
     width: 100%;
     max-width: 900px;
-    height: 300px;
+    height: 200px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 40px;
-    margin-bottom: 30px;
+    padding: 0 60px;
+    margin-top: 30px;
   }
   
-  /* Línea punteada del mapa */
+  /* Ruta punteada */
   .map-path {
     position: absolute;
-    top: 50%;
-    left: 50px;
-    right: 50px;
+    top: 55%;
+    left: 60px;
+    right: 60px;
     height: 4px;
-    border-top: 4px dashed rgba(255,255,255,0.4);
+    border-top: 4px dashed rgba(255,255,255,0.3);
     z-index: 1;
   }
 
-  .island {
-    width: 60px;
-    height: 60px;
+  /* ISLAS (Diseño CSS) */
+  .island-wrapper {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.3s ease;
+  }
+
+  .island-base {
+    width: 70px;
+    height: 40px;
     background: var(--sand);
+    border-radius: 50% 50% 10% 10%;
+    box-shadow: inset -8px -5px 0 var(--sand-dark), 0 8px 10px rgba(0,0,0,0.4);
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    border: 2px solid #fff;
+    transition: all 0.3s;
+  }
+
+  /* Palmera */
+  .palm-tree {
+    font-size: 2rem;
+    position: absolute;
+    bottom: 20px;
+    transform-origin: bottom center;
+    animation: sway 3s infinite alternate ease-in-out;
+  }
+  @keyframes sway { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
+
+  /* Número de isla */
+  .island-number {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    background: #fff;
+    color: var(--ocean-dark);
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 1.8rem;
-    position: relative;
-    z-index: 2;
-    box-shadow: inset -5px -5px 0 var(--sand-dark), 0 5px 15px rgba(0,0,0,0.5);
-    transition: transform 0.3s;
-    border: 3px solid #fff;
+    font-weight: bold;
+    font-size: 1rem;
+    border: 3px solid var(--sand);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    z-index: 3;
   }
-  .island.completed { background: var(--success); box-shadow: inset -5px -5px 0 #1e8449; }
-  .island.treasure { width: 80px; height: 80px; background: #f39c12; font-size: 2.5rem; }
 
-  /* Barco Pirata */
+  /* Isla completada */
+  .island-wrapper.completed .island-base {
+    background: var(--grass);
+    box-shadow: inset -8px -5px 0 var(--grass-dark), 0 8px 10px rgba(0,0,0,0.4);
+  }
+
+  /* Isla del Tesoro */
+  .island-wrapper.treasure .island-base {
+    width: 90px;
+    height: 55px;
+    background: #e67e22;
+  }
+  .island-wrapper.treasure .island-number {
+    background: #f1c40f;
+    color: #000;
+    border-color: #d35400;
+    font-size: 1.2rem;
+    width: 35px;
+    height: 35px;
+    right: -10px;
+  }
+
+  /* BARCO */
   .ship {
     position: absolute;
-    top: 50%;
+    top: 45%;
     left: 0;
     transform: translate(-50%, -50%);
-    font-size: 2.5rem;
-    z-index: 3;
+    font-size: 3rem;
+    z-index: 4;
     transition: left 1s cubic-bezier(0.25, 1, 0.5, 1);
     filter: drop-shadow(0 10px 5px rgba(0,0,0,0.5));
+    animation: float 2s infinite alternate ease-in-out;
   }
+  @keyframes float { from { transform: translate(-50%, -50%) translateY(0); } to { transform: translate(-50%, -50%) translateY(-10px); } }
 
-  /* ====== TARJETA DE PREGUNTAS ====== */
+  /* TARJETA DE PREGUNTAS (Madera) */
   .game-card {
     background: var(--wood);
-    background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.1) 75%, rgba(0,0,0,0.1)), 
-                      linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.1) 75%, rgba(0,0,0,0.1));
-    background-size: 20px 20px;
-    background-position: 0 0, 10px 10px;
-    border: 5px solid var(--wood-dark);
-    border-radius: 15px;
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.1) 10px, rgba(0,0,0,0.1) 20px);
+    border: 6px solid var(--wood-dark);
+    border-radius: 20px;
     padding: 30px;
     width: 100%;
     max-width: 800px;
     box-shadow: 0 15px 30px rgba(0,0,0,0.6);
     text-align: center;
+    margin-top: 20px;
     position: relative;
   }
   
-  /* Clavos de la madera */
+  /* Clavos decorativos */
   .game-card::before, .game-card::after {
-    content: '🔘'; position: absolute; top: 10px; font-size: 1rem; color: #333;
+    content: ''; position: absolute; width: 12px; height: 12px; background: #555; border-radius: 50%; box-shadow: inset -2px -2px 5px rgba(0,0,0,0.8), inset 2px 2px 5px rgba(255,255,255,0.4);
   }
-  .game-card::before { left: 10px; }
-  .game-card::after { right: 10px; }
+  .game-card::before { top: 10px; left: 10px; }
+  .game-card::after { top: 10px; right: 10px; }
 
   .question-title {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     color: var(--sand);
-    margin-bottom: 20px;
-    text-shadow: 1px 1px 0 #000;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px dashed rgba(255,255,255,0.3);
+    padding-bottom: 10px;
   }
 
   .question-text {
-    background: rgba(0,0,0,0.3);
+    background: rgba(0,0,0,0.4);
     padding: 20px;
     border-radius: 10px;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     font-style: italic;
     margin-bottom: 25px;
     border-left: 5px solid var(--sand);
+    color: #fff;
   }
 
-  /* ====== OPCIONES ====== */
+  /* OPCIONES */
   .options-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -174,12 +213,12 @@
   }
 
   .btn-option {
-    background: var(--ocean);
+    background: var(--ocean-dark);
     color: #fff;
     border: 2px solid var(--ocean-light);
     padding: 15px;
     border-radius: 10px;
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.2s;
@@ -191,153 +230,141 @@
     border-color: var(--sand);
   }
   .btn-option:disabled { cursor: not-allowed; opacity: 0.7; }
-
   .btn-option.correct { background: var(--success); border-color: #fff; }
   .btn-option.wrong { background: var(--error); border-color: #fff; }
 
-  /* ====== PANTALLAS ====== */
-  .screen { display: none; }
-  .screen.active { display: block; animation: fadeIn 0.5s; }
+  /* PANTALLAS */
+  .screen { display: none; width: 100%; align-items: center; flex-direction: column; }
+  .screen.active { display: flex; animation: fadeIn 0.5s; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* Pantalla de Inicio y Final */
+  /* PANTALLA INICIO Y FINAL */
   .intro-screen, .final-screen {
     text-align: center;
     padding: 40px;
-    background: rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.7);
     border-radius: 20px;
     max-width: 600px;
-    border: 3px solid var(--sand);
+    border: 4px solid var(--sand);
+    margin-top: 50px;
   }
-  .intro-screen h1, .final-screen h1 { font-size: 2.5rem; color: var(--sand); margin-bottom: 20px; }
-  .intro-screen p, .final-screen p { font-size: 1.2rem; margin-bottom: 30px; line-height: 1.6; }
+  .intro-screen h1, .final-screen h1 { font-size: 2.5rem; color: var(--sand); margin-bottom: 20px; text-shadow: 2px 2px 0 #000; }
+  .intro-screen p, .final-screen p { font-size: 1.1rem; margin-bottom: 20px; line-height: 1.6; }
   
   .big-btn {
     background: var(--sand);
     color: #000;
     padding: 15px 40px;
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     font-weight: 900;
     border: none;
     border-radius: 50px;
     cursor: pointer;
-    box-shadow: 0 5px 0 var(--sand-dark);
+    box-shadow: 0 6px 0 var(--sand-dark);
     transition: 0.2s;
+    text-transform: uppercase;
   }
-  .big-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 0 var(--sand-dark); }
-  .big-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--sand-dark); }
+  .big-btn:hover { transform: translateY(-3px); box-shadow: 0 9px 0 var(--sand-dark); }
+  .big-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--sand-dark); }
 
   @media (max-width: 650px) {
     .options-grid { grid-template-columns: 1fr; }
-    .map-container { padding: 0 10px; }
-    .island { width: 40px; height: 40px; font-size: 1.2rem; }
-    .island.treasure { width: 50px; height: 50px; font-size: 1.5rem; }
-    .ship { font-size: 2rem; }
+    .map-container { padding: 0 20px; }
+    .island-base { width: 50px; height: 30px; }
+    .palm-tree { font-size: 1.5rem; bottom: 15px; }
+    .ship { font-size: 2.2rem; }
   }
 </style>
 </head>
 <body translate="no" class="notranslate">
 
-  <div class="waves"></div>
-
-  <!-- HUD SUPERIOR -->
+  <!-- HUD -->
   <div class="hud">
-    <div class="pirate-title">🏴‍☠️ Aventura Pirata</div>
-    <div class="treasures">💎 Islas superadas: <span id="scoreDisplay">0</span> / 5</div>
+    <div class="pirate-title">🏴‍☠️ Pirate Routines</div>
+    <div class="treasures">💎 Islas: <span id="scoreDisplay">0</span> / 5</div>
   </div>
 
-  <!-- PANTALLA DE INICIO -->
+  <!-- INICIO -->
   <div id="introScreen" class="screen active intro-screen">
     <h1>🗺️ El Mapa del Tesoro</h1>
-    <p>¡Ahoy, marinero! El capitán necesita tu ayuda para navegar por las 5 islas de las <strong>Rutinas Diarias</strong>.</p>
-    <p>Traduce correctamente el español al inglés para avanzar con tu barco y encontrar el cofre del tesoro.</p>
+    <p>¡Ahoy, marinero! Navega por las 5 islas traduciendo las rutinas diarias del español al inglés.</p>
+    <p>Si fallas, el barco no avanzará. ¡Elige bien tus respuestas!</p>
     <button class="big-btn" onclick="startGame()">⚓ ¡Zarpar!</button>
   </div>
 
-  <!-- PANTALLA DEL JUEGO -->
+  <!-- JUEGO -->
   <div id="gameScreen" class="screen">
     
     <!-- MAPA -->
     <div class="map-container">
       <div class="map-path"></div>
-      
-      <!-- Barco animado -->
       <div class="ship" id="ship">⛵</div>
 
-      <!-- Islas (se generan con JS) -->
-      <div class="island" id="island1">1</div>
-      <div class="island" id="island2">2</div>
-      <div class="island" id="island3">3</div>
-      <div class="island" id="island4">4</div>
-      <div class="island" id="island5">5</div>
-      <div class="island treasure" id="treasureIsland">💰</div>
+      <!-- Las islas se generan con JS -->
+      <div id="islandsContainer" style="display: flex; justify-content: space-between; width: 100%;">
+        <!-- Isla 1 -->
+        <div class="island-wrapper" id="island1">
+          <div class="island-base"><span class="palm-tree">🌴</span><div class="island-number">1</div></div>
+        </div>
+        <!-- Isla 2 -->
+        <div class="island-wrapper" id="island2">
+          <div class="island-base"><span class="palm-tree">🌴</span><div class="island-number">2</div></div>
+        </div>
+        <!-- Isla 3 -->
+        <div class="island-wrapper" id="island3">
+          <div class="island-base"><span class="palm-tree">🌴</span><div class="island-number">3</div></div>
+        </div>
+        <!-- Isla 4 -->
+        <div class="island-wrapper" id="island4">
+          <div class="island-base"><span class="palm-tree">🌴</span><div class="island-number">4</div></div>
+        </div>
+        <!-- Isla 5 -->
+        <div class="island-wrapper" id="island5">
+          <div class="island-base"><span class="palm-tree">🌴</span><div class="island-number">5</div></div>
+        </div>
+        <!-- Isla del Tesoro -->
+        <div class="island-wrapper treasure" id="treasureIsland">
+          <div class="island-base"><span class="palm-tree">💰</span><div class="island-number">🏆</div></div>
+        </div>
+      </div>
     </div>
 
-    <!-- TARJETA DE PREGUNTAS -->
+    <!-- TARJETA -->
     <div class="game-card" id="gameCard">
-      <div class="question-title">Isla actual: <span id="currentIslandNumber">1</span></div>
+      <div class="question-title">Isla <span id="currentIslandNumber">1</span></div>
       <div class="question-text" id="questionText">Cargando...</div>
-      <div class="options-grid" id="optionsContainer">
-        <!-- Botones generados por JS -->
-      </div>
+      <div class="options-grid" id="optionsContainer"></div>
     </div>
 
   </div>
 
-  <!-- PANTALLA FINAL -->
+  <!-- FINAL -->
   <div id="finalScreen" class="screen final-screen">
     <h1>🎉 ¡Tesoro Encontrado!</h1>
-    <p>¡Increíble trabajo, pirata! Has derrotado a los acertijos de las rutinas y has llegado a la isla del tesoro.</p>
+    <p>¡Increíble trabajo, pirata! Has llegado a la isla del tesoro.</p>
     <p style="font-size: 2rem;">🏆 <span id="finalScore">5</span> / 5 Islas</p>
     <button class="big-btn" onclick="location.reload()">🔄 Jugar de nuevo</button>
   </div>
 
 <script>
-// =====================================================================
-//  DATOS DEL JUEGO (Rutinas Diarias)
-// =====================================================================
 const QUESTIONS = [
-  {
-    spanish: "Ella se levanta a las 6:00 am.",
-    options: ["She wakes up at 6:00 am.", "She wake up at 6:00 am.", "He wakes up at 6:00 am.", "She goes to bed at 6:00 am."],
-    correct: "She wakes up at 6:00 am."
-  },
-  {
-    spanish: "Él se cepilla los dientes.",
-    options: ["He brushes his teeth.", "He brush his teeth.", "She brushes her teeth.", "He washes his face."],
-    correct: "He brushes his teeth."
-  },
-  {
-    spanish: "Nosotros desayunamos a las 7:00 am.",
-    options: ["We have breakfast at 7:00 am.", "We has breakfast at 7:00 am.", "They have breakfast at 7:00 am.", "We have lunch at 7:00 am."],
-    correct: "We have breakfast at 7:00 am."
-  },
-  {
-    spanish: "Él va a la escuela en autobús.",
-    options: ["He goes to school by bus.", "He go to school by bus.", "She goes to school by bus.", "He goes to work by bus."],
-    correct: "He goes to school by bus."
-  },
-  {
-    spanish: "Ellos almuerzan en la escuela.",
-    options: ["They have lunch at school.", "They has lunch at school.", "He has lunch at school.", "They have dinner at school."],
-    correct: "They have lunch at school."
-  }
+  { spanish: "Ella se levanta a las 6:00 am.", options: ["She wakes up at 6:00 am.", "She wake up at 6:00 am.", "He wakes up at 6:00 am.", "She goes to bed at 6:00 am."], correct: "She wakes up at 6:00 am." },
+  { spanish: "Él se cepilla los dientes.", options: ["He brushes his teeth.", "He brush his teeth.", "She brushes her teeth.", "He washes his face."], correct: "He brushes his teeth." },
+  { spanish: "Nosotros desayunamos a las 7:00 am.", options: ["We have breakfast at 7:00 am.", "We has breakfast at 7:00 am.", "They have breakfast at 7:00 am.", "We have lunch at 7:00 am."], correct: "We have breakfast at 7:00 am." },
+  { spanish: "Él va a la escuela en autobús.", options: ["He goes to school by bus.", "He go to school by bus.", "She goes to school by bus.", "He goes to work by bus."], correct: "He goes to school by bus." },
+  { spanish: "Ellos almuerzan en la escuela.", options: ["They have lunch at school.", "They has lunch at school.", "He has lunch at school.", "They have dinner at school."], correct: "They have lunch at school." }
 ];
 
 let currentQuestionIndex = 0;
 let score = 0;
 let locked = false;
 
-// Elementos del DOM
 const ship = document.getElementById('ship');
 const questionText = document.getElementById('questionText');
 const optionsContainer = document.getElementById('optionsContainer');
 const currentIslandNumber = document.getElementById('currentIslandNumber');
 const scoreDisplay = document.getElementById('scoreDisplay');
 
-// =====================================================================
-//  LÓGICA DEL JUEGO
-// =====================================================================
 function startGame() {
   document.getElementById('introScreen').classList.remove('active');
   document.getElementById('gameScreen').classList.add('active');
@@ -352,18 +379,13 @@ function loadQuestion() {
     endGame();
     return;
   }
-
   locked = false;
   const q = QUESTIONS[currentQuestionIndex];
-  
-  // Actualizar UI
   currentIslandNumber.textContent = currentQuestionIndex + 1;
   questionText.textContent = `"${q.spanish}"`;
   optionsContainer.innerHTML = '';
 
-  // Mezclar opciones
   const shuffledOpts = [...q.options].sort(() => Math.random() - 0.5);
-
   shuffledOpts.forEach(opt => {
     const btn = document.createElement('button');
     btn.className = 'btn-option';
@@ -384,63 +406,52 @@ function checkAnswer(btn, selected, correct) {
     btn.classList.add('correct');
     score++;
     scoreDisplay.textContent = score;
-    
-    // Siguiente isla
     currentQuestionIndex++;
+    
+    // Mover barco a la siguiente isla
     setTimeout(() => {
       if (currentQuestionIndex < QUESTIONS.length) {
-        moveShipToNextIsland();
-        setTimeout(loadQuestion, 1000); // Esperar a que el barco llegue
+        moveShip();
+        setTimeout(loadQuestion, 1000); 
       } else {
         endGame();
       }
     }, 800);
   } else {
     btn.classList.add('wrong');
-    // Marcar la correcta
-    allBtns.forEach(b => {
-      if (b.textContent === correct) b.classList.add('correct');
-    });
-    
-    // El barco no avanza, volvemos a intentar la misma isla
+    allBtns.forEach(b => { if (b.textContent === correct) b.classList.add('correct'); });
     setTimeout(() => {
       loadQuestion(); 
     }, 2000);
   }
 }
 
-function moveShipToNextIsland() {
-  updateShipPosition();
-}
-
-function updateShipPosition() {
-  // Calcula el porcentaje de avance en el mapa
-  // De 0% (inicio) a 100% (tesoro)
-  const totalSteps = QUESTIONS.length;
-  const progress = currentQuestionIndex / totalSteps;
+function moveShip() {
+  const totalIslands = QUESTIONS.length;
+  const progress = currentQuestionIndex / totalIslands;
   
-  // El mapa va desde ~5% hasta ~95% del ancho
-  const minLeft = 5; 
-  const maxLeft = 95;
+  // Calcula la posición basándose en las 5 islas + el tesoro
+  // Ajustamos los márgenes para que el barco se detenga justo en la isla.
+  const minLeft = 8; // Posición inicial (isla 1)
+  const maxLeft = 92; // Posición final (tesoro)
   const leftPos = minLeft + (progress * (maxLeft - minLeft));
   
   ship.style.left = `${leftPos}%`;
-  
-  // Marcar islas completadas
-  for (let i = 1; i <= currentQuestionIndex; i++) {
-    const island = document.getElementById(`island${i}`);
-    if (island) island.classList.add('completed');
-  }
+
+  // Marcar isla como completada
+  const island = document.getElementById(`island${currentQuestionIndex}`);
+  if (island) island.classList.add('completed');
+}
+
+function updateShipPosition() {
+  ship.style.left = '8%';
 }
 
 function endGame() {
-  // Ocultar juego, mostrar final
   document.getElementById('gameScreen').classList.remove('active');
   document.getElementById('finalScreen').classList.add('active');
   document.getElementById('finalScore').textContent = score;
-  
-  // Mover barco al tesoro final
-  ship.style.left = "95%";
+  ship.style.left = "92%";
   document.getElementById('treasureIsland').classList.add('completed');
 }
 </script>
